@@ -28,7 +28,7 @@ def main():
     # Run version_manager.py bump and then restore files
     version = run_cmd(
         [
-            "python",
+            sys.executable,
             ".github/scripts/version_manager.py",
             "bump",
             "--type",

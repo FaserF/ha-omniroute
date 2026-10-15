@@ -156,6 +156,13 @@ def main():
     p = argparse.ArgumentParser()
     subparsers = p.add_subparsers(dest="command")
 
+    get_parser = subparsers.add_parser("get", help="Get current version")
+    get_parser.add_argument("--manifest", help="Path to manifest.json")
+
+    set_parser = subparsers.add_parser("set", help="Set version directly")
+    set_parser.add_argument("version", help="Version string to set")
+    set_parser.add_argument("--manifest", help="Path to manifest.json")
+
     bump_parser = subparsers.add_parser("bump")
     bump_parser.add_argument(
         "--type", choices=["stable", "beta", "dev", "nightly"], required=True
@@ -167,7 +174,12 @@ def main():
 
     args = p.parse_args()
 
-    if args.command == "bump":
+    if args.command == "get":
+        print(get_current_version(args.manifest))
+    elif args.command == "set":
+        write_version(args.version, args.manifest)
+        print(args.version)
+    elif args.command == "bump":
         # Handle empty string override values from workflow inputs
         override_val = (
             args.override if args.override and args.override.strip() else None
@@ -175,6 +187,8 @@ def main():
         new_v = calculate_version(args.type, args.level, override=override_val)
         write_version(new_v)
         print(new_v)
+    else:
+        p.print_help()
 
 
 if __name__ == "__main__":

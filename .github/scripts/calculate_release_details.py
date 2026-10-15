@@ -3,6 +3,7 @@ import json
 import os
 import re
 import subprocess
+import sys
 from datetime import UTC, datetime
 
 
@@ -56,7 +57,7 @@ def main():
 
     # Calculate version via version_manager
     bump_args = [
-        "python",
+        sys.executable,
         ".github/scripts/version_manager.py",
         "bump",
         "--type",
@@ -144,7 +145,7 @@ def main():
                 else f"https://github.com/{owner}/{repo_name}"
             )
             cl_args = [
-                "python",
+                sys.executable,
                 script_path,
                 "--repo-url",
                 repo_url,

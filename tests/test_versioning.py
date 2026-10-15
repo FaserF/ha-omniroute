@@ -2,6 +2,7 @@
 
 import json
 import os
+import re
 import sys
 from pathlib import Path
 
@@ -24,7 +25,7 @@ def test_manifest_version_parity():
     with open(manifest_path, encoding="utf-8") as f:
         data = json.load(f)
     assert "version" in data
-    assert data["version"] == "0.1.0"
+    assert re.match(r"^v?\d+\.\d+\.\d+", data["version"])
     assert data["domain"] == "omniroute"
     assert data["name"] == "OmniRoute"
 
