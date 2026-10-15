@@ -1,7 +1,6 @@
 import glob
 import json
 import os
-import re
 import subprocess
 from datetime import UTC, datetime
 

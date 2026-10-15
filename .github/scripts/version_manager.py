@@ -72,7 +72,7 @@ def write_version(v, manifest_path=None):
 
 
 def bump_calver(current, r_type, level="patch"):
-    now = datetime.datetime.now(datetime.timezone.utc)
+    now = datetime.datetime.now(datetime.UTC)
     target_year = now.year
     target_month = now.month
 

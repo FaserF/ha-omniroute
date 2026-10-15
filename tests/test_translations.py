@@ -54,9 +54,9 @@ def test_translation_files_parity():
         missing_in_translation = strings_keys - translation_keys
         extra_in_translation = translation_keys - strings_keys
 
-        assert (
-            not missing_in_translation
-        ), f"{lang}.json is missing keys present in strings.json: {missing_in_translation}"
-        assert (
-            not extra_in_translation
-        ), f"{lang}.json has extra keys not in strings.json: {extra_in_translation}"
+        assert not missing_in_translation, (
+            f"{lang}.json is missing keys present in strings.json: {missing_in_translation}"
+        )
+        assert not extra_in_translation, (
+            f"{lang}.json has extra keys not in strings.json: {extra_in_translation}"
+        )

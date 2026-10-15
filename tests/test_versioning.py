@@ -2,8 +2,8 @@
 
 import json
 import os
-from pathlib import Path
 import sys
+from pathlib import Path
 
 # Add script directory to sys.path
 sys.path.append(
@@ -43,6 +43,6 @@ def test_bump_logic():
 
     for current, bump, status, tags, expected in scenarios:
         result = bump_version(current, bump, status, all_tags=tags)
-        assert (
-            result == expected
-        ), f"Expected {expected} for ({current}, {bump}, {status}), got {result}"
+        assert result == expected, (
+            f"Expected {expected} for ({current}, {bump}, {status}), got {result}"
+        )

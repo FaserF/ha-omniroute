@@ -1,4 +1,3 @@
-import datetime
 import glob
 import os
 import re
@@ -22,7 +21,6 @@ def main():
 
     release_type = os.environ.get("RELEASE_TYPE", "beta")
     bump_level = os.environ.get("BUMP_LEVEL", "patch")
-    repo = os.environ.get("REPO", "faserf/ha-omniroute").lower()
 
     manifest_path = find_manifest()
 

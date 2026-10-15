@@ -2,10 +2,9 @@
 
 import sys
 import types
-from collections.abc import Generator
 from dataclasses import dataclass
 from typing import Any
-from unittest.mock import AsyncMock, MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock
 
 if sys.platform == "win32":
     if "fcntl" not in sys.modules:
@@ -101,6 +100,10 @@ class MockEntity:
 class MockCoordinatorEntity(MockEntity):
     """Base class for coordinator entities."""
 
+    @classmethod
+    def __class_getitem__(cls, _):
+        return cls
+
     def __init__(self, coordinator: Any) -> None:
         self.coordinator = coordinator
         self.hass = getattr(coordinator, "hass", None)
@@ -114,6 +117,10 @@ class MockCoordinatorEntity(MockEntity):
 
 class MockDataUpdateCoordinator:
     """Mock DataUpdateCoordinator."""
+
+    @classmethod
+    def __class_getitem__(cls, _):
+        return cls
 
     def __init__(
         self,
@@ -229,6 +236,7 @@ class MockOptionsFlow:
 mock_submodule("homeassistant.const")
 mock_submodule("homeassistant.core")
 mock_submodule("homeassistant.exceptions")
+mock_submodule("homeassistant.data_entry_flow")
 mock_submodule("homeassistant.config_entries")
 mock_submodule("homeassistant.helpers.update_coordinator")
 mock_submodule("homeassistant.helpers.entity")
@@ -263,12 +271,18 @@ ha_core.SupportsResponse = types.SimpleNamespace(
 ha_core.callback = lambda fn: fn
 
 ha_exc = sys.modules["homeassistant.exceptions"]
+
+
 class MockHomeAssistantError(Exception):
     pass
+
+
 ha_exc.HomeAssistantError = MockHomeAssistantError
+
 
 class MockUpdateFailed(MockHomeAssistantError):
     pass
+
 
 coord_module = sys.modules["homeassistant.helpers.update_coordinator"]
 coord_module.DataUpdateCoordinator = MockDataUpdateCoordinator
@@ -279,6 +293,8 @@ entity_module = sys.modules["homeassistant.helpers.entity"]
 entity_module.Entity = MockEntity
 
 sensor_module = sys.modules["homeassistant.components.sensor"]
+
+
 class MockSensorEntity(MockEntity):
     _attr_native_value: Any = None
     _attr_native_unit_of_measurement: str | None = None
@@ -288,6 +304,7 @@ class MockSensorEntity(MockEntity):
     @property
     def native_value(self) -> Any:
         return self._attr_native_value
+
 
 sensor_module.SensorEntity = MockSensorEntity
 sensor_module.SensorEntityDescription = MockEntityDescription
@@ -303,11 +320,15 @@ sensor_module.SensorDeviceClass = types.SimpleNamespace(
 
 # Conversation module
 conv_module = sys.modules["homeassistant.components.conversation"]
+
+
 class MockConversationEntity(MockEntity):
     _attr_supported_features = 1
 
+
 conv_module.ConversationEntity = MockConversationEntity
 conv_module.ConversationEntityFeature = types.SimpleNamespace(CONTROL=1)
+
 
 @dataclass
 class MockConversationInput:
@@ -318,14 +339,18 @@ class MockConversationInput:
     language: str = "en"
     agent_id: str | None = None
 
+
 conv_module.ConversationInput = MockConversationInput
+
 
 @dataclass
 class MockConversationResult:
     response: Any
     conversation_id: str | None = None
 
+
 conv_module.ConversationResult = MockConversationResult
+
 
 class MockIntentResponse:
     def __init__(self, language: str = "en") -> None:
@@ -335,6 +360,7 @@ class MockIntentResponse:
     def async_set_speech(self, speech: str) -> None:
         self.speech = speech
 
+
 conv_module.intent = types.SimpleNamespace(IntentResponse=MockIntentResponse)
 
 cfg_module = sys.modules["homeassistant.config_entries"]
@@ -343,6 +369,8 @@ cfg_module.OptionsFlow = MockOptionsFlow
 cfg_module.ConfigEntry = MagicMock
 
 tpl_module = sys.modules["homeassistant.helpers.template"]
+
+
 class MockTemplate:
     def __init__(self, template_str: str, hass: Any = None) -> None:
         self.template_str = template_str
@@ -350,6 +378,7 @@ class MockTemplate:
 
     def async_render(self, parse_result: bool = False) -> str:
         return self.template_str
+
 
 tpl_module.Template = MockTemplate
 

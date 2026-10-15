@@ -1,15 +1,14 @@
 """Test OmniRoute async API client."""
 
 from unittest.mock import AsyncMock, MagicMock
+
 import aiohttp
 import pytest
 
 from custom_components.omniroute.client import (
-    CannotConnect,
     InvalidAuth,
     ModelNotFoundError,
     OmniRouteClient,
-    OmniRouteError,
 )
 
 
@@ -53,7 +52,9 @@ async def test_get_models_success(mock_session):
     mock_session.get.return_value = create_response_mock(
         200, json_data={"data": [{"id": "model-b"}, {"id": "model-a"}]}
     )
-    client = OmniRouteClient(mock_session, "http://localhost:20128/v1", api_key="secret")
+    client = OmniRouteClient(
+        mock_session, "http://localhost:20128/v1", api_key="secret"
+    )
     models = await client.async_get_models()
     assert models == ["model-a", "model-b"]
 
@@ -101,7 +102,9 @@ async def test_chat_completion_success(mock_session):
 @pytest.mark.asyncio
 async def test_chat_completion_not_found(mock_session):
     """Test 404 model not found."""
-    mock_session.post.return_value = create_response_mock(404, text_data="Model not found")
+    mock_session.post.return_value = create_response_mock(
+        404, text_data="Model not found"
+    )
     client = OmniRouteClient(mock_session, "http://localhost:20128/v1")
     with pytest.raises(ModelNotFoundError):
         await client.async_chat_completion(

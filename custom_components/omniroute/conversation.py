@@ -3,8 +3,8 @@
 from __future__ import annotations
 
 import json
-from typing import Any
 import uuid
+from typing import Any
 
 from homeassistant.components import conversation
 from homeassistant.components.conversation import (
@@ -20,7 +20,6 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .client import OmniRouteClient
-from .coordinator import OmniRouteDataUpdateCoordinator
 from .const import (
     CONF_CHAT_MODEL,
     CONF_MAX_TOKENS,
@@ -36,6 +35,7 @@ from .const import (
     LOGGER,
     MAX_TOOL_ITERATIONS,
 )
+from .coordinator import OmniRouteDataUpdateCoordinator
 
 
 async def async_setup_entry(
@@ -84,9 +84,7 @@ class OmniRouteConversationEntity(
         """Return supported languages."""
         return ["*"]
 
-    async def async_process(
-        self, user_input: ConversationInput
-    ) -> ConversationResult:
+    async def async_process(self, user_input: ConversationInput) -> ConversationResult:
         """Process a conversational input sentence."""
         options = self.entry.options
         chat_model = options.get(CONF_CHAT_MODEL, DEFAULT_CHAT_MODEL)

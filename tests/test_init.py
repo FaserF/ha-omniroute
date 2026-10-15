@@ -1,6 +1,7 @@
 """Test OmniRoute setup and unload lifecycles."""
 
 from unittest.mock import AsyncMock, MagicMock, patch
+
 import pytest
 
 from custom_components.omniroute import (

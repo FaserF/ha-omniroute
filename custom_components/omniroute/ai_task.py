@@ -13,7 +13,6 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .client import OmniRouteClient
-from .coordinator import OmniRouteDataUpdateCoordinator
 from .const import (
     CONF_AI_TASK_MAX_TOKENS,
     CONF_AI_TASK_MODEL,
@@ -26,6 +25,7 @@ from .const import (
     DOMAIN,
     LOGGER,
 )
+from .coordinator import OmniRouteDataUpdateCoordinator
 
 
 async def async_setup_entry(
@@ -41,9 +41,7 @@ async def async_setup_entry(
     async_add_entities([OmniRouteAITaskEntity(entry, client, coordinator)])
 
 
-class OmniRouteAITaskEntity(
-    CoordinatorEntity[OmniRouteDataUpdateCoordinator], Entity
-):
+class OmniRouteAITaskEntity(CoordinatorEntity[OmniRouteDataUpdateCoordinator], Entity):
     """OmniRoute AI Task entity for smart home reasoning and generative workflows."""
 
     _attr_has_entity_name = True
@@ -140,9 +138,7 @@ class OmniRouteAITaskEntity(
             self._last_latency_ms = round((time.perf_counter() - start) * 1000, 2)
             self._tasks_executed += 1
             self._last_model_used = chosen_model
-            self._last_task_timestamp = (
-                datetime.datetime.now(datetime.timezone.utc).isoformat()
-            )
+            self._last_task_timestamp = datetime.datetime.now(datetime.UTC).isoformat()
             self._state = "ready"
             self.async_write_ha_state()
 

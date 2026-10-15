@@ -5,7 +5,6 @@ from __future__ import annotations
 from typing import Any
 
 import voluptuous as vol
-
 from homeassistant import config_entries
 from homeassistant.core import callback
 from homeassistant.data_entry_flow import FlowResult
@@ -93,9 +92,7 @@ class OmniRouteConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             errors=errors,
         )
 
-    async def async_step_reauth(
-        self, entry_data: dict[str, Any]
-    ) -> FlowResult:
+    async def async_step_reauth(self, entry_data: dict[str, Any]) -> FlowResult:
         """Handle reauthorization request."""
         return await self.async_step_user()
 
@@ -124,8 +121,13 @@ class OmniRouteOptionsFlow(config_entries.OptionsFlow):
 
         # Retrieve available models from coordinator if setup
         models = list(DEFAULT_CASCADES)
-        if DOMAIN in self.hass.data and self.config_entry.entry_id in self.hass.data[DOMAIN]:
-            coordinator = self.hass.data[DOMAIN][self.config_entry.entry_id].get("coordinator")
+        if (
+            DOMAIN in self.hass.data
+            and self.config_entry.entry_id in self.hass.data[DOMAIN]
+        ):
+            coordinator = self.hass.data[DOMAIN][self.config_entry.entry_id].get(
+                "coordinator"
+            )
             if coordinator and getattr(coordinator, "models", None):
                 models = list(set(models + coordinator.models))
                 models.sort()

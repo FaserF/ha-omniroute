@@ -1,16 +1,22 @@
 """Test OmniRoute config flow."""
 
 from unittest.mock import AsyncMock, patch
+
 import pytest
 
-from custom_components.omniroute.client import CannotConnect, InvalidAuth, OmniRouteError
-from custom_components.omniroute.config_flow import OmniRouteConfigFlow, OmniRouteOptionsFlow
+from custom_components.omniroute.client import (
+    CannotConnect,
+    InvalidAuth,
+)
+from custom_components.omniroute.config_flow import (
+    OmniRouteConfigFlow,
+    OmniRouteOptionsFlow,
+)
 from custom_components.omniroute.const import (
     CONF_API_KEY,
     CONF_API_URL,
     CONF_CHAT_MODEL,
     DEFAULT_API_URL,
-    DOMAIN,
 )
 
 

@@ -100,7 +100,11 @@ def clean_and_update_template(file_path, integration_version, ha_version, repo_n
                 block_content = new_block
 
         # 3. Service versions
-        elif service_version and field_id == "omniroute_version" and repo_name == "ha-omniroute":
+        elif (
+            service_version
+            and field_id == "omniroute_version"
+            and repo_name == "ha-omniroute"
+        ):
 
             def repl_service(match):
                 quote = match.group(1) or ""

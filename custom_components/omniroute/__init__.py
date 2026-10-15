@@ -4,25 +4,22 @@ from __future__ import annotations
 
 from typing import Any
 
+import homeassistant.helpers.config_validation as cv
 import voluptuous as vol
-
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import Platform
 from homeassistant.core import HomeAssistant, ServiceCall, SupportsResponse
 from homeassistant.helpers import aiohttp_client
-import homeassistant.helpers.config_validation as cv
 
 from .client import OmniRouteClient
-from .coordinator import OmniRouteDataUpdateCoordinator
 from .const import (
     CONF_API_KEY,
     CONF_API_URL,
     DOMAIN,
-    LOGGER,
     PLATFORMS,
     SERVICE_EXECUTE_AI_TASK,
     SERVICE_GENERATE_IMAGE,
 )
+from .coordinator import OmniRouteDataUpdateCoordinator
 
 EXECUTE_AI_TASK_SCHEMA = vol.Schema(
     {

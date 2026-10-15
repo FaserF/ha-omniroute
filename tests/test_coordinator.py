@@ -1,6 +1,7 @@
 """Test OmniRoute DataUpdateCoordinator."""
 
 from unittest.mock import AsyncMock, MagicMock
+
 import pytest
 
 from custom_components.omniroute.client import CannotConnect

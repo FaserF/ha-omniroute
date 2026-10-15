@@ -7,7 +7,6 @@ import time
 from typing import Any
 
 import aiohttp
-
 from homeassistant.exceptions import HomeAssistantError
 
 from .const import LOGGER
@@ -185,11 +184,15 @@ class OmniRouteClient:
                         )
                     return await resp.json()
         except (TimeoutError, aiohttp.ClientError) as err:
-            raise CannotConnect(f"Connection error during chat completion: {err}") from err
+            raise CannotConnect(
+                f"Connection error during chat completion: {err}"
+            ) from err
         except (InvalidAuth, ModelNotFoundError, OmniRouteError):
             raise
         except Exception as err:
-            raise OmniRouteError(f"Unexpected error during chat completion: {err}") from err
+            raise OmniRouteError(
+                f"Unexpected error during chat completion: {err}"
+            ) from err
 
     async def async_create_embeddings(
         self,
@@ -348,8 +351,12 @@ class OmniRouteClient:
                         item.get("url") or item.get("b64_json", "") for item in images
                     ]
         except (TimeoutError, aiohttp.ClientError) as err:
-            raise CannotConnect(f"Connection error during image generation: {err}") from err
+            raise CannotConnect(
+                f"Connection error during image generation: {err}"
+            ) from err
         except (InvalidAuth, OmniRouteError):
             raise
         except Exception as err:
-            raise OmniRouteError(f"Unexpected error during image generation: {err}") from err
+            raise OmniRouteError(
+                f"Unexpected error during image generation: {err}"
+            ) from err

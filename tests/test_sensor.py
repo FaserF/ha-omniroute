@@ -1,6 +1,7 @@
 """Test OmniRoute sensor platform."""
 
 from unittest.mock import MagicMock
+
 import pytest
 
 from custom_components.omniroute.const import DOMAIN

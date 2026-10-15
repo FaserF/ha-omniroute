@@ -7,7 +7,6 @@ from dataclasses import dataclass
 from typing import Any
 
 from homeassistant.components.sensor import (
-    SensorDeviceClass,
     SensorEntity,
     SensorEntityDescription,
     SensorStateClass,
@@ -17,8 +16,8 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .coordinator import OmniRouteDataUpdateCoordinator
 from .const import DOMAIN
+from .coordinator import OmniRouteDataUpdateCoordinator
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -87,9 +86,7 @@ async def async_setup_entry(
     async_add_entities(entities)
 
 
-class OmniRouteSensor(
-    CoordinatorEntity[OmniRouteDataUpdateCoordinator], SensorEntity
-):
+class OmniRouteSensor(CoordinatorEntity[OmniRouteDataUpdateCoordinator], SensorEntity):
     """Representation of an OmniRoute sensor."""
 
     entity_description: OmniRouteSensorEntityDescription

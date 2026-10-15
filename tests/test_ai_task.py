@@ -1,6 +1,7 @@
 """Test OmniRoute AI Task platform."""
 
 from unittest.mock import AsyncMock, MagicMock
+
 import pytest
 
 from custom_components.omniroute.ai_task import (
@@ -66,7 +67,9 @@ async def test_ai_task_execution(hass, mock_config_entry):
 async def test_ai_task_generate_image(mock_config_entry):
     """Test generating image via AI task entity."""
     mock_client = MagicMock()
-    mock_client.async_generate_image = AsyncMock(return_value=["http://image.url/1.png"])
+    mock_client.async_generate_image = AsyncMock(
+        return_value=["http://image.url/1.png"]
+    )
     mock_coord = MagicMock()
 
     entity = OmniRouteAITaskEntity(mock_config_entry, mock_client, mock_coord)
@@ -80,7 +83,13 @@ async def test_ai_task_analyze_image(mock_config_entry):
     mock_client = MagicMock()
     mock_client.async_chat_completion = AsyncMock(
         return_value={
-            "choices": [{"message": {"content": "The image shows a front door delivery package."}}]
+            "choices": [
+                {
+                    "message": {
+                        "content": "The image shows a front door delivery package."
+                    }
+                }
+            ]
         }
     )
     mock_coord = MagicMock()

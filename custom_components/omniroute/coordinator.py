@@ -51,4 +51,6 @@ class OmniRouteDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         except (CannotConnect, InvalidAuth, OmniRouteError) as err:
             raise UpdateFailed(f"Error communicating with OmniRoute: {err}") from err
         except Exception as err:
-            raise UpdateFailed(f"Unexpected error updating OmniRoute data: {err}") from err
+            raise UpdateFailed(
+                f"Unexpected error updating OmniRoute data: {err}"
+            ) from err

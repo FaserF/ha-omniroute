@@ -1,3 +1,5 @@
+import glob
+import json
 import re
 import subprocess
 import sys
@@ -61,7 +63,6 @@ def bump_version(current, bump_type, release_status, all_tags=None):
                 ["git", "tag", "--list", "--sort=-v:refname"],
                 capture_output=True,
                 text=True,
-                check=True,
             )
             for t in res.stdout.strip().split("\n"):
                 t = t.lstrip("v")
@@ -72,48 +73,72 @@ def bump_version(current, bump_type, release_status, all_tags=None):
         except Exception:  # noqa: BLE001
             pass
 
-    if is_target_beta:
-        if is_curr_beta:
-            # Check if current beta is already ahead of latest stable
-            # If current beta is based on an older stable or equal, we bump
-            return f"{major}.{minor}.{patch}-beta.{curr_beta_num + 1}"
-        # Current is stable, start next beta cycle based on bump_type
-        b_major, b_minor, b_patch = major, minor, patch
-        if bump_type == "major":
-            b_major += 1
-            b_minor = 0
-            b_patch = 0
-        elif bump_type == "minor":
-            b_minor += 1
-            b_patch = 0
-        else:  # patch
-            b_patch += 1
-        return f"{b_major}.{b_minor}.{b_patch}-beta.0"
-
-    # Target is STABLE
-    if is_curr_beta:
-        # Promoting beta to stable -> drop beta suffix
-        return f"{major}.{minor}.{patch}"
-    # Current is stable, bump directly
+    # Calculate Target Stable Core
     if bump_type == "major":
-        return f"{major + 1}.0.0"
-    if bump_type == "minor":
-        return f"{major}.{minor + 1}.0"
-    return f"{major}.{minor}.{patch + 1}"
+        target_core = (latest_stable[0] + 1, 0, 0)
+    elif bump_type == "minor":
+        target_core = (latest_stable[0], latest_stable[1] + 1, 0)
+    else:  # patch
+        target_core = (latest_stable[0], latest_stable[1], latest_stable[2] + 1)
+
+    target_core_str = f"{target_core[0]}.{target_core[1]}.{target_core[2]}"
+
+    if is_target_beta:
+        # If current version's core matches target_core and is a beta, increment beta_num
+        current_core = (major, minor, patch)
+        if current_core == target_core and is_curr_beta:
+            return f"{target_core_str}-beta.{curr_beta_num + 1}"
+        return f"{target_core_str}-beta.0"
+    # Stable release
+    # If we are currently on a beta for this EXACT core, just strip the beta
+    # (e.g. 1.1.0-beta.5 -> 1.1.0)
+    current_core = (major, minor, patch)
+    if current_core == target_core and is_curr_beta:
+        return target_core_str
+
+    # Otherwise, if we were on an OLDER version, the target_core is already bumped
+    return target_core_str
+
+
+def update_files(new_version):
+    # Update pyproject.toml
+    with open("pyproject.toml", encoding="utf-8") as f:
+        content = f.read()
+    content = re.sub(
+        r'version\s*=\s*"[^"]+"',
+        f'version = "{new_version}"',
+        content,
+        count=1,
+    )
+    with open("pyproject.toml", "w", encoding="utf-8") as f:
+        f.write(content)
+
+    # Update manifest.json
+    manifests = glob.glob("custom_components/*/manifest.json")
+    if manifests:
+        manifest_path = manifests[0]
+        with open(manifest_path, encoding="utf-8") as f:
+            manifest = json.load(f)
+        manifest["version"] = new_version
+        with open(manifest_path, "w", encoding="utf-8") as f:
+            json.dump(manifest, f, indent=2)
+            f.write("\n")
 
 
 if __name__ == "__main__":
     if len(sys.argv) < 3:
-        print("Usage: python bump_version.py <bump_type> <release_status> [current_version]")
         sys.exit(1)
 
-    b_type = sys.argv[1].lower()
-    r_status = sys.argv[2].lower()
+    bump_type = sys.argv[1].lower()
+    release_status = sys.argv[2].lower()
 
-    if len(sys.argv) > 3:
-        curr = sys.argv[3].lstrip("v")
-    else:
-        latest = get_latest_tag()
-        curr = latest.lstrip("v") if latest else None
+    latest_tag = get_latest_tag()
+    current_v = latest_tag.lstrip("v") if latest_tag else None
 
-    print(bump_version(curr, b_type, r_status))
+    new_v = bump_version(current_v, bump_type, release_status)
+
+    update_files(new_v)
+
+    # Write to file for GitHub Actions
+    with open("VERSION.txt", "w", encoding="utf-8") as f:
+        f.write(new_v)

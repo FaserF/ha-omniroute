@@ -1,14 +1,15 @@
 """Test OmniRoute conversation agent."""
 
 from unittest.mock import AsyncMock, MagicMock, patch
-import pytest
 
+import pytest
+from homeassistant.components.conversation import ConversationInput
+
+from custom_components.omniroute.const import DOMAIN
 from custom_components.omniroute.conversation import (
     OmniRouteConversationEntity,
     async_setup_entry,
 )
-from custom_components.omniroute.const import DOMAIN
-from homeassistant.components.conversation import ConversationInput
 
 
 @pytest.mark.asyncio
@@ -39,7 +40,12 @@ async def test_conversation_process_simple(hass, mock_config_entry):
     mock_client.async_chat_completion = AsyncMock(
         return_value={
             "choices": [
-                {"message": {"role": "assistant", "content": "The living room light is on."}}
+                {
+                    "message": {
+                        "role": "assistant",
+                        "content": "The living room light is on.",
+                    }
+                }
             ]
         }
     )
@@ -98,7 +104,9 @@ async def test_conversation_process_with_tool_calling(hass, mock_config_entry):
     entity = OmniRouteConversationEntity(mock_config_entry, mock_client, mock_coord)
     entity.hass = hass
 
-    with patch("homeassistant.helpers.llm.async_get_api", new_callable=AsyncMock) as mock_get_api:
+    with patch(
+        "homeassistant.helpers.llm.async_get_api", new_callable=AsyncMock
+    ) as mock_get_api:
         mock_api = MagicMock()
         mock_api.tools = [
             MagicMock(name="HassTurnOn", description="Turn on light", parameters={})
