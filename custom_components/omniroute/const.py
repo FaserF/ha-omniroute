@@ -62,6 +62,7 @@ DEFAULT_TTS_VOICE: Final = "Puck"
 DEFAULT_TTS_SPEED: Final = 1.0
 DEFAULT_TTS_FORMAT: Final = "mp3"
 
+DEFAULT_STT_MODEL: Final = "stt-latest"
 DEFAULT_STT_LANGUAGE: Final = "en"
 DEFAULT_STT_FORMAT: Final = "wav"
 
@@ -87,6 +88,8 @@ PLATFORMS: Final[list[Platform | str]] = [
     Platform.SENSOR,
     Platform.BINARY_SENSOR,
     Platform.BUTTON,
+    Platform.TTS,
+    Platform.STT,
     PLATFORM_AI_TASK,
 ]
 

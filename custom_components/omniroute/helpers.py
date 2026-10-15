@@ -15,6 +15,6 @@ def get_device_info(entry: ConfigEntry, sw_version: str | None = None) -> Device
         name="OmniRoute Gateway",
         manufacturer=DEFAULT_MANUFACTURER,
         model=DEFAULT_MODEL,
-        sw_version=sw_version or "0.1.0",
-        configuration_url=entry.data.get(CONF_API_URL),
+        sw_version=sw_version or "1.0.0",
+        configuration_url=entry.data.get(CONF_API_URL, "").replace("/v1", ""),
     )

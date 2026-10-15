@@ -69,7 +69,7 @@ def test_binary_sensor_values_and_device_info(mock_config_entry):
     dev_info = sensors_by_key["connected"].device_info
     assert dev_info["manufacturer"] == DEFAULT_MANUFACTURER
     assert dev_info["model"] == DEFAULT_MODEL
-    assert dev_info["configuration_url"] == "http://omniroute:20128/v1"
+    assert dev_info["configuration_url"] == "http://omniroute:20128"
 
     # Test offline / degraded state
     mock_coord.data = {

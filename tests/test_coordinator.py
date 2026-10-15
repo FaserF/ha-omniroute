@@ -21,6 +21,12 @@ async def test_coordinator_update_success(hass):
     mock_client.async_get_models = AsyncMock(
         return_value=["chat-cascade", "coding-cascade", "gpt-4o"]
     )
+    mock_client.async_get_quotas = AsyncMock(
+        return_value={
+            "quotas": {"github": 100},
+            "providers": {"github": {"status": "ok"}},
+        }
+    )
 
     coordinator = OmniRouteDataUpdateCoordinator(hass, mock_client)
     await coordinator.async_refresh()

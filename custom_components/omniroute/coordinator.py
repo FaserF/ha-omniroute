@@ -33,6 +33,7 @@ class OmniRouteDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         try:
             health = await self.client.async_check_health()
             models = await self.client.async_get_models()
+            quotas = await self.client.async_get_quotas()
             self.models = models
 
             # Check cascade availability
@@ -50,6 +51,8 @@ class OmniRouteDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 "version": str(health.get("version", "1.0.0")),
                 "healthy": (health.get("status") == "ok")
                 and health.get("reachable", False),
+                "quotas": quotas.get("quotas", {}),
+                "providers": quotas.get("providers", {}),
             }
         except (CannotConnect, InvalidAuth, OmniRouteError) as err:
             raise UpdateFailed(f"Error communicating with OmniRoute: {err}") from err

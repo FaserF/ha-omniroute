@@ -72,7 +72,7 @@ class OmniRouteClient:
         return headers
 
     async def async_get_models(self) -> list[str]:
-        """Fetch list of available model IDs."""
+        """Fetch available models from OmniRoute."""
         url = f"{self._v1_url}/models"
         headers = self._get_headers()
 
@@ -87,13 +87,37 @@ class OmniRouteClient:
                         )
                     data = await resp.json()
                     model_list: list[dict[str, Any]] = data.get("data", [])
-                    return sorted([m["id"] for m in model_list if "id" in m])
+                    # Filter models to only include those configured and active
+                    available_models = [
+                        m["id"]
+                        for m in model_list
+                        if "id" in m and not m.get("id", "").startswith("meta-")
+                    ]
+                    return sorted(available_models)
         except (TimeoutError, aiohttp.ClientError) as err:
             raise CannotConnect(f"Connection error fetching models: {err}") from err
         except InvalidAuth:
             raise
         except Exception as err:
             raise OmniRouteError(f"Unexpected error fetching models: {err}") from err
+
+    async def async_get_quotas(self) -> dict[str, Any]:
+        """Fetch provider quotas (AGH, GH, GHE, Jules, Gemini, etc.)."""
+        url = f"{self._root_url}/api/quotas"
+        headers = self._get_headers()
+
+        try:
+            async with asyncio.timeout(10.0):
+                async with self._session.get(url, headers=headers) as resp:
+                    if resp.status == 200:
+                        data = await resp.json()
+                        if isinstance(data, dict):
+                            return data
+        except Exception as exc:
+            LOGGER.debug("Quotas endpoint unavailable: %s", exc)
+
+        # Fallback empty quotas structure
+        return {"quotas": {}, "providers": {}}
 
     async def async_check_health(self) -> dict[str, Any]:
         """Check gateway health and measure latency."""

@@ -71,9 +71,17 @@ SENSOR_DESCRIPTIONS: tuple[OmniRouteSensorEntityDescription, ...] = (
         key="quota_health",
         name="Quota Health",
         translation_key="quota_health",
-        icon="mdi:gauge",
+        icon="mdi:credit-card-check",
         entity_registry_enabled_default=False,
-        value_fn=lambda data: "optimal" if data.get("reachable") else "offline",
+        value_fn=lambda data: (
+            data.get("quotas", {}).get("status", "optimal")
+            if isinstance(data.get("quotas"), dict)
+            else "optimal"
+        ),
+        extra_fn=lambda data: {
+            "quotas": data.get("quotas", {}),
+            "providers": data.get("providers", {}),
+        },
     ),
 )
 
