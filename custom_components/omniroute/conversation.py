@@ -194,17 +194,18 @@ class OmniRouteConversationEntity(
                         tool_name=fn_name,
                         tool_args=fn_args,
                     )
-                    tool_resp = await llm_api.async_call_tool(tool_input)
+                    tool_res = await llm_api.async_call_tool(tool_input)
+                    tool_content = json.dumps(tool_res)
                 except Exception as err:  # noqa: BLE001
                     LOGGER.warning("Tool execution error for %s: %s", fn_name, err)
-                    tool_resp = {"error": str(err)}
+                    tool_content = json.dumps({"error": str(err)})
 
                 messages.append(
                     {
                         "role": "tool",
                         "tool_call_id": call_id,
                         "name": fn_name,
-                        "content": json.dumps(tool_resp),
+                        "content": tool_content,
                     }
                 )
 
