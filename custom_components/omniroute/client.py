@@ -127,17 +127,33 @@ class OmniRouteClient:
         try:
             models = await self.async_get_models()
             latency_ms = round((time.perf_counter() - start) * 1000, 2)
+            # Query version from /v1/version if available, or fall back to version header/default
+            server_version = "1.0.0"
+            try:
+                async with asyncio.timeout(5.0):
+                    async with self._session.get(
+                        f"{self._v1_url}/version", headers=headers
+                    ) as v_resp:
+                        if v_resp.status == 200:
+                            v_data = await v_resp.json()
+                            if isinstance(v_data, dict) and "version" in v_data:
+                                server_version = str(v_data["version"])
+            except Exception:
+                pass
+
             return {
                 "status": "ok",
                 "latency_ms": latency_ms,
                 "reachable": True,
                 "models_count": len(models),
+                "version": server_version,
             }
         except Exception as err:
             return {
                 "status": "offline",
                 "latency_ms": None,
                 "reachable": False,
+                "version": "1.0.0",
                 "error": str(err),
             }
 

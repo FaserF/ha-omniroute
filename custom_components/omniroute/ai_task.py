@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-import datetime
 import time
+from datetime import UTC, datetime
 from typing import Any
 
 from homeassistant.config_entries import ConfigEntry
@@ -139,7 +139,7 @@ class OmniRouteAITaskEntity(CoordinatorEntity[OmniRouteDataUpdateCoordinator], E
             self._last_latency_ms = round((time.perf_counter() - start) * 1000, 2)
             self._tasks_executed += 1
             self._last_model_used = chosen_model
-            self._last_task_timestamp = datetime.datetime.now(datetime.UTC).isoformat()
+            self._last_task_timestamp = datetime.now(UTC).isoformat()
             self._state = "ready"
             self.async_write_ha_state()
 
