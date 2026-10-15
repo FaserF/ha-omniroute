@@ -1,0 +1,124 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Mit OmniRoute & Hermes AI Gateway verbinden",
+        "description": "Konfigurieren Sie die API-Endpunkt-URL und den optionalen API-Schlüssel für Ihre OmniRoute-Instanz.",
+        "data": {
+          "api_url": "API-URL",
+          "api_key": "API-Schlüssel (optional)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Verbindung zu OmniRoute fehlgeschlagen. Überprüfen Sie Ihr Netzwerk oder die URL.",
+      "invalid_auth": "Ungültige Authentifizierungsdaten.",
+      "unknown": "Ein unerwarteter Fehler ist aufgetreten."
+    },
+    "abort": {
+      "already_configured": "Diese OmniRoute-Instanz ist bereits konfiguriert."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "OmniRoute Optionen",
+        "description": "Passen Sie Modelle, Temperaturen und Prompts für Assist-Konversationen und KI-Aufgaben an.",
+        "data": {
+          "chat_model": "Konversations- / Assist-Modell",
+          "prompt": "Assist System-Prompt",
+          "temperature": "Assist Temperatur",
+          "top_p": "Assist Top P",
+          "max_tokens": "Assist Max Tokens",
+          "ai_task_model": "KI-Aufgaben-Modell",
+          "ai_task_prompt": "KI-Aufgaben System-Prompt",
+          "ai_task_temperature": "KI-Aufgaben Temperatur",
+          "ai_task_max_tokens": "KI-Aufgaben Max Tokens"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "status": {
+        "name": "Gateway-Status"
+      },
+      "latency_ms": {
+        "name": "Gateway-Antwortzeit"
+      },
+      "active_cascades": {
+        "name": "Aktive Kaskaden"
+      },
+      "models_count": {
+        "name": "Verfügbare Modelle"
+      },
+      "quota_health": {
+        "name": "Kontingent-Zustand"
+      }
+    },
+    "conversation": {
+      "assist": {
+        "name": "Assist"
+      }
+    },
+    "ai_task": {
+      "task_engine": {
+        "name": "Aufgaben-Engine"
+      }
+    }
+  },
+  "services": {
+    "execute_ai_task": {
+      "name": "KI-Aufgabe ausführen",
+      "description": "Beliebigen Prompt oder Denkaufgabe über OmniRoute ausführen.",
+      "fields": {
+        "prompt": {
+          "name": "Prompt",
+          "description": "Benutzer-Prompt für die KI-Aufgabe."
+        },
+        "model": {
+          "name": "Modell",
+          "description": "Zu verwendendes OmniRoute-Modell oder Kaskade."
+        },
+        "temperature": {
+          "name": "Temperatur",
+          "description": "Sampling-Temperatur."
+        },
+        "max_tokens": {
+          "name": "Max Tokens",
+          "description": "Maximale Anzahl an Generierungs-Tokens."
+        },
+        "system_prompt": {
+          "name": "System-Prompt",
+          "description": "Systemanweisungen für die KI."
+        }
+      }
+    },
+    "generate_image": {
+      "name": "Bild generieren",
+      "description": "Generiere ein Bild mit OmniRoute-Bildmodellen.",
+      "fields": {
+        "prompt": {
+          "name": "Prompt",
+          "description": "Bildbeschreibung."
+        },
+        "model": {
+          "name": "Modell",
+          "description": "Bildgenerierungsmodell."
+        },
+        "size": {
+          "name": "Größe",
+          "description": "Bildauflösung."
+        },
+        "quality": {
+          "name": "Qualität",
+          "description": "Bildqualität."
+        },
+        "n": {
+          "name": "Anzahl",
+          "description": "Anzahl der zu generierenden Bilder."
+        }
+      }
+    }
+  }
+}

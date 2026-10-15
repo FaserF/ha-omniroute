@@ -1,0 +1,58 @@
+name: Bug Report
+description: Report a bug with the OmniRoute & Hermes AI Home Assistant integration
+title: '[Bug]: '
+labels: ['bug', 'triage']
+assignees:
+  - FaserF
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Before submitting
+        - 🔍 Search [existing issues](https://github.com/FaserF/ha-omniroute/issues) to avoid duplicates
+        - 📖 Check the [Documentation](https://github.com/FaserF/ha-omniroute)
+
+  - type: input
+    id: integration_version
+    attributes:
+      label: Integration Version
+      description: Which version of ha-omniroute are you running?
+      placeholder: e.g. v1.0.0
+    validations:
+      required: true
+
+  - type: input
+    id: ha_version
+    attributes:
+      label: Home Assistant Version
+      placeholder: e.g. 2026.10.1
+    validations:
+      required: true
+
+  - type: dropdown
+    id: ha_install_type
+    attributes:
+      label: Home Assistant Installation Type
+      options:
+        - Home Assistant OS
+        - Home Assistant Container
+        - Home Assistant Supervised
+        - Home Assistant Core
+    validations:
+      required: true
+
+  - type: textarea
+    id: description
+    attributes:
+      label: Problem Description
+      description: A clear and concise description of the bug. (Do NOT share sensitive passwords, credentials, or public API keys.)
+    validations:
+      required: true
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Diagnostics & Logs
+      description: Provide relevant logs from Home Assistant. Please redact API keys and tokens.
+    validations:
+      required: false

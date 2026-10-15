@@ -1,0 +1,132 @@
+---
+name: Release
+
+on:
+  workflow_dispatch:
+    inputs:
+      release_type:
+        description: "Type of release (stable, beta, nightly)"
+        required: true
+        default: "beta"
+        type: choice
+        options:
+          - stable
+          - beta
+          - nightly
+
+      bump_level:
+        description: "Bump Level (SemVer only: major, minor, patch)"
+        required: false
+        default: "patch"
+        type: choice
+        options:
+          - patch
+          - minor
+          - major
+
+      version_override:
+        description: "Manually override new version (e.g. 1.2.3 or 2026.6.2b1). Leave empty to use automatic calculation."
+        required: false
+        type: string
+  push:
+    branches:
+      - main
+      - master
+    paths-ignore:
+      - '**/manifest.json'
+      - '**/translations/**'
+      - 'CHANGELOG.md'
+      - '.github/workflows/issue-orchestrator.yml'
+      - '.github/ISSUE_TEMPLATE/**'
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}-release
+  cancel-in-progress: true
+
+jobs:
+  versioning:
+    name: Determine Version
+    if: github.event_name == 'workflow_dispatch' || (github.event.head_commit != null && contains(github.event.head_commit.message, '[bump-version]'))
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: write
+    outputs:
+      version: ${{ steps.get_version.outputs.version }}
+      tag: ${{ steps.get_version.outputs.tag }}
+      is_prerelease: ${{ steps.get_version.outputs.is_prerelease }}
+      release_body: ${{ steps.get_version.outputs.release_body }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+
+      - name: Calculate Release Details
+        id: get_version
+        env:
+          RELEASE_TYPE: ${{ github.event.inputs.release_type || 'beta' }}
+          BUMP_LEVEL: ${{ github.event.inputs.bump_level || 'patch' }}
+          VERSION_OVERRIDE: ${{ github.event.inputs.version_override || '' }}
+          REPO: ${{ github.repository }}
+        run: |
+          python .github/scripts/calculate_release_details.py
+
+      - name: Update Version in Manifest
+        run: |
+          VERSION="${{ steps.get_version.outputs.version }}"
+          python .github/scripts/version_manager.py set "$VERSION"
+
+      - name: Update Issue Templates
+        run: |
+          VERSION="${{ steps.get_version.outputs.version }}"
+          python .github/scripts/update_templates.py "$VERSION"
+
+      - name: Commit and Push Version Bump
+        uses: stefanzweifel/git-auto-commit-action@v7
+        with:
+          commit_message: "chore: bump version to ${{ steps.get_version.outputs.tag }} [skip ci]"
+          commit_user_name: "github-actions[bot]"
+          commit_user_email: "github-actions[bot]@users.noreply.github.com"
+          file_pattern: 'custom_components/*/manifest.json pyproject.toml .github/ISSUE_TEMPLATE/*.yml'
+
+  ci:
+    name: CI Check
+    needs: versioning
+    uses: ./.github/workflows/ci-orchestrator.yml
+    secrets: inherit
+
+  release:
+    name: Create GitHub Release & Zip
+    needs: [versioning, ci]
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          fetch-depth: 0
+          ref: ${{ github.ref }}
+
+      - name: Pull Latest Changes
+        run: |
+          git pull origin ${{ github.ref_name }}
+
+      - name: Package Integration
+        run: |
+          DOMAIN=$(python -c "import json, glob; print(json.load(open(glob.glob('custom_components/*/manifest.json')[0]))['domain'])")
+          cd custom_components
+          zip -r "../${DOMAIN}.zip" "$DOMAIN"
+          cd ..
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ needs.versioning.outputs.tag }}
+          name: ${{ needs.versioning.outputs.tag }}
+          body: ${{ needs.versioning.outputs.release_body }}
+          prerelease: ${{ needs.versioning.outputs.is_prerelease == 'true' }}
+          files: |
+            *.zip
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

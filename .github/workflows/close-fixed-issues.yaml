@@ -1,0 +1,102 @@
+name: Auto-Close Fixed Issues
+
+on:
+  schedule:
+    - cron: '0 4 * * *' # Run daily at 04:00 UTC
+  workflow_dispatch:
+
+permissions:
+  issues: write
+
+jobs:
+  close-fixed:
+    name: Close Inactive Fixed Issues
+    runs-on: ubuntu-latest
+    steps:
+      - name: Close issues marked as fixed with no user activity for 3 weeks
+        uses: actions/github-script@v9
+        with:
+          script: |
+            const THREE_WEEKS_MS = 21 * 24 * 60 * 60 * 1000;
+            const now = Date.now();
+            const MAINTAINER = 'faserf';
+
+            const issues = await github.paginate(github.rest.issues.listForRepo, {
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              state: 'open',
+              per_page: 100,
+            });
+
+            for (const issue of issues) {
+              if (issue.pull_request) continue;
+
+              const hasFixedLabel = issue.labels.some(l =>
+                (typeof l === 'string' ? l : l.name || '').toLowerCase().includes('fixed')
+              );
+              if (!hasFixedLabel) continue;
+
+              let fixedLabeledTime = null;
+              try {
+                const events = await github.paginate(github.rest.issues.listEvents, {
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  per_page: 100,
+                });
+
+                for (const event of events) {
+                  if (event.event === 'labeled' && event.label && event.label.name.toLowerCase().includes('fixed')) {
+                    const eventTime = new Date(event.created_at).getTime();
+                    if (!fixedLabeledTime || eventTime > fixedLabeledTime) {
+                      fixedLabeledTime = eventTime;
+                    }
+                  }
+                }
+              } catch (e) {
+                console.error(`Error fetching events for issue #${issue.number}:`, e);
+                continue;
+              }
+
+              if (!fixedLabeledTime) continue;
+              if (now - fixedLabeledTime < THREE_WEEKS_MS) continue;
+
+              let hasUserActivity = false;
+              try {
+                const comments = await github.paginate(github.rest.issues.listComments, {
+                  owner: context.repo.owner,
+                  repo: context.repo.repo,
+                  issue_number: issue.number,
+                  since: new Date(fixedLabeledTime).toISOString(),
+                  per_page: 100,
+                });
+
+                for (const comment of comments) {
+                  if (comment.user && comment.user.login.toLowerCase() !== MAINTAINER.toLowerCase() && !comment.user.login.includes('[bot]')) {
+                    hasUserActivity = true;
+                    break;
+                  }
+                }
+              } catch (e) {
+                console.error(`Error fetching comments for issue #${issue.number}:`, e);
+                continue;
+              }
+
+              if (hasUserActivity) continue;
+
+              console.log(`Closing issue #${issue.number} as fixed with no activity for 3 weeks.`);
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                body: "Closing this issue as it has been marked as fixed and there has been no further activity for 3 weeks. If you still experience this issue, please feel free to leave a comment or open a new issue."
+              });
+
+              await github.rest.issues.update({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                state: 'closed',
+                state_reason: 'completed'
+              });
+            }

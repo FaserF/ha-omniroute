@@ -1,0 +1,124 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to OmniRoute & Hermes AI Gateway",
+        "description": "Configure the API endpoint URL and optional API key for your OmniRoute instance.",
+        "data": {
+          "api_url": "API URL",
+          "api_key": "API Key (optional)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect to OmniRoute. Check your network or URL.",
+      "invalid_auth": "Invalid authentication credentials.",
+      "unknown": "Unexpected error occurred."
+    },
+    "abort": {
+      "already_configured": "This OmniRoute instance is already configured."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "OmniRoute Options",
+        "description": "Adjust models, temperatures, and prompts for Assist conversation and AI task reasoning.",
+        "data": {
+          "chat_model": "Conversation / Assist Model",
+          "prompt": "Assist System Prompt",
+          "temperature": "Assist Temperature",
+          "top_p": "Assist Top P",
+          "max_tokens": "Assist Max Tokens",
+          "ai_task_model": "AI Task Model",
+          "ai_task_prompt": "AI Task System Prompt",
+          "ai_task_temperature": "AI Task Temperature",
+          "ai_task_max_tokens": "AI Task Max Tokens"
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "status": {
+        "name": "Gateway Status"
+      },
+      "latency_ms": {
+        "name": "Gateway Response Time"
+      },
+      "active_cascades": {
+        "name": "Active Cascades"
+      },
+      "models_count": {
+        "name": "Available Models"
+      },
+      "quota_health": {
+        "name": "Quota Health"
+      }
+    },
+    "conversation": {
+      "assist": {
+        "name": "Assist"
+      }
+    },
+    "ai_task": {
+      "task_engine": {
+        "name": "Task Engine"
+      }
+    }
+  },
+  "services": {
+    "execute_ai_task": {
+      "name": "Execute AI Task",
+      "description": "Execute arbitrary prompt or reasoning task through OmniRoute.",
+      "fields": {
+        "prompt": {
+          "name": "Prompt",
+          "description": "User prompt for the AI task."
+        },
+        "model": {
+          "name": "Model",
+          "description": "OmniRoute model or cascade to use."
+        },
+        "temperature": {
+          "name": "Temperature",
+          "description": "Sampling temperature."
+        },
+        "max_tokens": {
+          "name": "Max Tokens",
+          "description": "Maximum tokens to generate."
+        },
+        "system_prompt": {
+          "name": "System Prompt",
+          "description": "System instructions for the AI."
+        }
+      }
+    },
+    "generate_image": {
+      "name": "Generate Image",
+      "description": "Generate image using OmniRoute image models.",
+      "fields": {
+        "prompt": {
+          "name": "Prompt",
+          "description": "Image description."
+        },
+        "model": {
+          "name": "Model",
+          "description": "Image generation model."
+        },
+        "size": {
+          "name": "Size",
+          "description": "Image resolution."
+        },
+        "quality": {
+          "name": "Quality",
+          "description": "Image quality."
+        },
+        "n": {
+          "name": "Count",
+          "description": "Number of images to generate."
+        }
+      }
+    }
+  }
+}
