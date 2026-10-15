@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-from typing import Any
 
 from homeassistant.components.button import (
     ButtonEntity,
@@ -16,7 +15,7 @@ from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .client import OmniRouteClient
-from .const import CONF_API_URL, DATA_CLIENT, DATA_COORDINATOR, DOMAIN
+from .const import DATA_CLIENT, DATA_COORDINATOR, DOMAIN
 from .coordinator import OmniRouteDataUpdateCoordinator
 from .helpers import get_device_info
 
