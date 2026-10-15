@@ -16,8 +16,9 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN
+from .const import DATA_COORDINATOR, DOMAIN
 from .coordinator import OmniRouteDataUpdateCoordinator
+from .helpers import get_device_info
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -32,12 +33,15 @@ SENSOR_DESCRIPTIONS: tuple[OmniRouteSensorEntityDescription, ...] = (
     OmniRouteSensorEntityDescription(
         key="status",
         name="Gateway Status",
+        translation_key="status",
         icon="mdi:check-network",
+        entity_registry_enabled_default=False,
         value_fn=lambda data: data.get("status", "unknown"),
     ),
     OmniRouteSensorEntityDescription(
         key="latency_ms",
         name="Gateway Response Time",
+        translation_key="latency_ms",
         icon="mdi:timer-outline",
         native_unit_of_measurement="ms",
         state_class=SensorStateClass.MEASUREMENT,
@@ -46,6 +50,7 @@ SENSOR_DESCRIPTIONS: tuple[OmniRouteSensorEntityDescription, ...] = (
     OmniRouteSensorEntityDescription(
         key="active_cascades",
         name="Active Cascades",
+        translation_key="active_cascades",
         icon="mdi:transit-connection-variant",
         value_fn=lambda data: len(data.get("active_cascades", [])),
         extra_fn=lambda data: {
@@ -56,6 +61,7 @@ SENSOR_DESCRIPTIONS: tuple[OmniRouteSensorEntityDescription, ...] = (
     OmniRouteSensorEntityDescription(
         key="models_count",
         name="Available Models",
+        translation_key="models_count",
         icon="mdi:robot",
         state_class=SensorStateClass.TOTAL,
         value_fn=lambda data: data.get("models_count", 0),
@@ -64,7 +70,9 @@ SENSOR_DESCRIPTIONS: tuple[OmniRouteSensorEntityDescription, ...] = (
     OmniRouteSensorEntityDescription(
         key="quota_health",
         name="Quota Health",
+        translation_key="quota_health",
         icon="mdi:gauge",
+        entity_registry_enabled_default=False,
         value_fn=lambda data: "optimal" if data.get("reachable") else "offline",
     ),
 )
@@ -77,7 +85,7 @@ async def async_setup_entry(
 ) -> None:
     """Set up OmniRoute sensors from config entry."""
     data = hass.data[DOMAIN][entry.entry_id]
-    coordinator: OmniRouteDataUpdateCoordinator = data["coordinator"]
+    coordinator: OmniRouteDataUpdateCoordinator = data[DATA_COORDINATOR]
 
     entities = [
         OmniRouteSensor(coordinator, entry, description)
@@ -103,12 +111,10 @@ class OmniRouteSensor(CoordinatorEntity[OmniRouteDataUpdateCoordinator], SensorE
         self.entity_description = description
         self.entry = entry
         self._attr_unique_id = f"{entry.entry_id}_{description.key}"
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, entry.entry_id)},
-            "name": "OmniRoute Gateway",
-            "manufacturer": "FaserF",
-            "model": "Hermes AI Gateway",
-        }
+        sw_version = None
+        if coordinator.data:
+            sw_version = coordinator.data.get("version")
+        self._attr_device_info = get_device_info(entry, sw_version)
 
     @property
     def native_value(self) -> Any:

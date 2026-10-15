@@ -53,43 +53,48 @@ jobs:
                     }
                   }
                 }
-              } catch (e) {
-                console.error(`Error fetching events for issue #${issue.number}:`, e);
+              } catch (err) {
+                console.warn(`Could not fetch events for #${issue.number}: ${err.message}`);
+              }
+
+              if (!fixedLabeledTime) {
+                fixedLabeledTime = new Date(issue.created_at).getTime();
+              }
+
+              const labelAge = now - fixedLabeledTime;
+              if (labelAge < THREE_WEEKS_MS) {
+                const days = Math.round(labelAge / (1000 * 60 * 60 * 24));
+                console.log(`Issue #${issue.number} was labeled fixed ${days} days ago (< 21 days). Skipping.`);
                 continue;
               }
 
-              if (!fixedLabeledTime) continue;
-              if (now - fixedLabeledTime < THREE_WEEKS_MS) continue;
+              const comments = await github.paginate(github.rest.issues.listComments, {
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: issue.number,
+                per_page: 100,
+              });
 
-              let hasUserActivity = false;
-              try {
-                const comments = await github.paginate(github.rest.issues.listComments, {
-                  owner: context.repo.owner,
-                  repo: context.repo.repo,
-                  issue_number: issue.number,
-                  since: new Date(fixedLabeledTime).toISOString(),
-                  per_page: 100,
-                });
+              const hasRecentUserComment = comments.some(c => {
+                const commentTime = new Date(c.created_at).getTime();
+                const author = (c.user?.login || '').toLowerCase();
+                const isIgnored = author === MAINTAINER || author.includes('bot');
+                return commentTime > fixedLabeledTime && !isIgnored;
+              });
 
-                for (const comment of comments) {
-                  if (comment.user && comment.user.login.toLowerCase() !== MAINTAINER.toLowerCase() && !comment.user.login.includes('[bot]')) {
-                    hasUserActivity = true;
-                    break;
-                  }
-                }
-              } catch (e) {
-                console.error(`Error fetching comments for issue #${issue.number}:`, e);
+              if (hasRecentUserComment) {
+                console.log(`Issue #${issue.number} has user activity after fixed label. Skipping.`);
                 continue;
               }
 
-              if (hasUserActivity) continue;
+              console.log(`Closing issue #${issue.number} (fixed >= 21 days with no user activity).`);
 
-              console.log(`Closing issue #${issue.number} as fixed with no activity for 3 weeks.`);
+              const closeComment = `This issue has been marked as fixed for more than 3 weeks with no further activity. Closing automatically. 👋\n\nIf you still encounter this issue or have further questions, feel free to reopen or create a new issue.`;
               await github.rest.issues.createComment({
                 owner: context.repo.owner,
                 repo: context.repo.repo,
                 issue_number: issue.number,
-                body: "Closing this issue as it has been marked as fixed and there has been no further activity for 3 weeks. If you still experience this issue, please feel free to leave a comment or open a new issue."
+                body: closeComment,
               });
 
               await github.rest.issues.update({
@@ -97,6 +102,6 @@ jobs:
                 repo: context.repo.repo,
                 issue_number: issue.number,
                 state: 'closed',
-                state_reason: 'completed'
+                state_reason: 'completed',
               });
             }

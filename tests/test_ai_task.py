@@ -47,6 +47,9 @@ async def test_ai_task_execution(hass, mock_config_entry):
     entity = OmniRouteAITaskEntity(mock_config_entry, mock_client, mock_coord)
     entity.hass = hass
 
+    assert entity.device_info["manufacturer"] == "OmniRoute"
+    assert entity.device_info["model"] == "AI Gateway & Router"
+
     result = await entity.async_execute_task(
         prompt="Synthesize power consumption trends",
         model="coding-cascade",

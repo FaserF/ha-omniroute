@@ -54,6 +54,9 @@ async def test_conversation_process_simple(hass, mock_config_entry):
     entity = OmniRouteConversationEntity(mock_config_entry, mock_client, mock_coord)
     entity.hass = hass
 
+    assert entity.device_info["manufacturer"] == "OmniRoute"
+    assert entity.device_info["model"] == "AI Gateway & Router"
+
     user_input = ConversationInput(text="Is the living room light on?")
     result = await entity.async_process(user_input)
 

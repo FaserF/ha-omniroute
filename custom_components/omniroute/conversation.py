@@ -26,6 +26,8 @@ from .const import (
     CONF_PROMPT,
     CONF_TEMPERATURE,
     CONF_TOP_P,
+    DATA_CLIENT,
+    DATA_COORDINATOR,
     DEFAULT_CHAT_MODEL,
     DEFAULT_MAX_TOKENS,
     DEFAULT_PROMPT,
@@ -36,6 +38,7 @@ from .const import (
     MAX_TOOL_ITERATIONS,
 )
 from .coordinator import OmniRouteDataUpdateCoordinator
+from .helpers import get_device_info
 
 
 async def async_setup_entry(
@@ -45,8 +48,8 @@ async def async_setup_entry(
 ) -> None:
     """Set up conversation entities from config entry."""
     data = hass.data[DOMAIN][entry.entry_id]
-    client: OmniRouteClient = data["client"]
-    coordinator: OmniRouteDataUpdateCoordinator = data["coordinator"]
+    client: OmniRouteClient = data[DATA_CLIENT]
+    coordinator: OmniRouteDataUpdateCoordinator = data[DATA_COORDINATOR]
 
     async_add_entities([OmniRouteConversationEntity(entry, client, coordinator)])
 
@@ -71,12 +74,10 @@ class OmniRouteConversationEntity(
         self.entry = entry
         self.client = client
         self._attr_unique_id = f"{entry.entry_id}_conversation"
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, entry.entry_id)},
-            "name": "OmniRoute Gateway",
-            "manufacturer": "FaserF",
-            "model": "Hermes AI Gateway",
-        }
+        sw_version = None
+        if coordinator.data:
+            sw_version = coordinator.data.get("version")
+        self._attr_device_info = get_device_info(entry, sw_version)
         self.history: dict[str, list[dict[str, Any]]] = {}
 
     @property

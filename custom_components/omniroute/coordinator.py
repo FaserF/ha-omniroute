@@ -47,6 +47,9 @@ class OmniRouteDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 "models": models,
                 "active_cascades": active_cascades,
                 "cascade_status": cascade_status,
+                "version": str(health.get("version", "1.0.0")),
+                "healthy": (health.get("status") == "ok")
+                and health.get("reachable", False),
             }
         except (CannotConnect, InvalidAuth, OmniRouteError) as err:
             raise UpdateFailed(f"Error communicating with OmniRoute: {err}") from err

@@ -1,0 +1,95 @@
+execute_ai_task:
+  description: Execute an arbitrary generative AI task across OmniRoute cascades.
+  fields:
+    prompt:
+      description: The prompt or task instruction for the AI model.
+      example: "Summarize today's energy consumption."
+      required: true
+      selector:
+        text:
+          multiline: true
+    model:
+      description: Target model or cascade alias.
+      example: "coding-cascade"
+      required: false
+      selector:
+        text: {}
+    temperature:
+      description: Sampling temperature between 0.0 and 2.0.
+      example: 0.2
+      required: false
+      selector:
+        number:
+          min: 0.0
+          max: 2.0
+          step: 0.05
+          mode: box
+    max_tokens:
+      description: Maximum tokens to generate in response.
+      example: 2048
+      required: false
+      selector:
+        number:
+          min: 1
+          max: 32768
+          mode: box
+    system_prompt:
+      description: Custom system instruction overriding the default.
+      example: "You are an AI task specialist for Home Assistant."
+      required: false
+      selector:
+        text:
+          multiline: true
+
+generate_image:
+  description: Generate images via OmniRoute diffusion endpoints.
+  fields:
+    prompt:
+      description: Text description of the image to generate.
+      example: "A futuristic smart home in the forest during sunset."
+      required: true
+      selector:
+        text:
+          multiline: true
+    model:
+      description: Image generation model.
+      example: "flux-schnell"
+      default: "flux-schnell"
+      required: false
+      selector:
+        text: {}
+    size:
+      description: Image resolution.
+      example: "1024x1024"
+      default: "1024x1024"
+      required: false
+      selector:
+        select:
+          options:
+            - "512x512"
+            - "1024x1024"
+            - "1280x720"
+            - "1920x1080"
+    quality:
+      description: Generation quality.
+      example: "standard"
+      default: "standard"
+      required: false
+      selector:
+        select:
+          options:
+            - "standard"
+            - "hd"
+    n:
+      description: Number of images to generate.
+      example: 1
+      default: 1
+      required: false
+      selector:
+        number:
+          min: 1
+          max: 4
+          mode: box
+
+refresh_models:
+  description: Force an immediate refresh of available models and cascade status from the gateway.

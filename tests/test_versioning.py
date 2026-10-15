@@ -13,6 +13,7 @@ sys.path.append(
 )
 
 from bump_version import bump_version
+from version_manager import calculate_version
 
 
 def test_manifest_version_parity():
@@ -23,7 +24,18 @@ def test_manifest_version_parity():
     with open(manifest_path, encoding="utf-8") as f:
         data = json.load(f)
     assert "version" in data
+    assert data["version"] == "0.1.0"
     assert data["domain"] == "omniroute"
+    assert data["name"] == "OmniRoute"
+
+
+def test_version_manager_calculate():
+    """Test version_manager calculate_version logic."""
+    assert calculate_version("stable", "patch", curr="0.1.0") == "0.1.1"
+    assert calculate_version("stable", "minor", curr="0.1.0") == "0.2.0"
+    assert calculate_version("stable", "major", curr="0.1.0") == "1.0.0"
+    assert calculate_version("beta", "patch", curr="0.1.0") == "0.1.1b0"
+    assert calculate_version("stable", "patch", override="v2.0.0") == "2.0.0"
 
 
 def test_bump_logic():

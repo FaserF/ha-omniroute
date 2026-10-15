@@ -18,6 +18,8 @@ from .const import (
     CONF_AI_TASK_MODEL,
     CONF_AI_TASK_PROMPT,
     CONF_AI_TASK_TEMPERATURE,
+    DATA_CLIENT,
+    DATA_COORDINATOR,
     DEFAULT_AI_TASK_MAX_TOKENS,
     DEFAULT_AI_TASK_MODEL,
     DEFAULT_AI_TASK_PROMPT,
@@ -26,6 +28,7 @@ from .const import (
     LOGGER,
 )
 from .coordinator import OmniRouteDataUpdateCoordinator
+from .helpers import get_device_info
 
 
 async def async_setup_entry(
@@ -35,8 +38,8 @@ async def async_setup_entry(
 ) -> None:
     """Set up AI Task entities from config entry."""
     data = hass.data[DOMAIN][entry.entry_id]
-    client: OmniRouteClient = data["client"]
-    coordinator: OmniRouteDataUpdateCoordinator = data["coordinator"]
+    client: OmniRouteClient = data[DATA_CLIENT]
+    coordinator: OmniRouteDataUpdateCoordinator = data[DATA_COORDINATOR]
 
     async_add_entities([OmniRouteAITaskEntity(entry, client, coordinator)])
 
@@ -58,12 +61,10 @@ class OmniRouteAITaskEntity(CoordinatorEntity[OmniRouteDataUpdateCoordinator], E
         self.entry = entry
         self.client = client
         self._attr_unique_id = f"{entry.entry_id}_ai_task"
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, entry.entry_id)},
-            "name": "OmniRoute Gateway",
-            "manufacturer": "FaserF",
-            "model": "Hermes AI Gateway",
-        }
+        sw_version = None
+        if coordinator.data:
+            sw_version = coordinator.data.get("version")
+        self._attr_device_info = get_device_info(entry, sw_version)
         self._tasks_executed = 0
         self._last_latency_ms: float | None = None
         self._last_model_used: str | None = None

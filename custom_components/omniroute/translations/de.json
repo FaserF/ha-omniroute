@@ -2,7 +2,7 @@
   "config": {
     "step": {
       "user": {
-        "title": "Mit OmniRoute & Hermes AI Gateway verbinden",
+        "title": "Mit OmniRoute verbinden",
         "description": "Konfigurieren Sie die API-Endpunkt-URL und den optionalen API-Schlüssel für Ihre OmniRoute-Instanz.",
         "data": {
           "api_url": "API-URL",
@@ -54,6 +54,25 @@
       },
       "quota_health": {
         "name": "Kontingent-Zustand"
+      }
+    },
+    "binary_sensor": {
+      "connected": {
+        "name": "Verbunden"
+      },
+      "healthy": {
+        "name": "Fehlerfrei"
+      }
+    },
+    "button": {
+      "web_ui": {
+        "name": "Web-UI"
+      },
+      "refresh_models": {
+        "name": "Modelle neu laden"
+      },
+      "ping_gateway": {
+        "name": "Gateway anpingen"
       }
     },
     "conversation": {
@@ -119,6 +138,10 @@
           "description": "Anzahl der zu generierenden Bilder."
         }
       }
+    },
+    "refresh_models": {
+      "name": "Modelle neu laden",
+      "description": "Aktualisiert die verfügbaren Modelle und Kaskaden vom Gateway."
     }
   }
 }

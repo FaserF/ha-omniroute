@@ -1,6 +1,6 @@
 {
   "domain": "omniroute",
-  "name": "OmniRoute & Hermes AI",
+  "name": "OmniRoute",
   "codeowners": ["@FaserF"],
   "config_flow": true,
   "documentation": "https://github.com/FaserF/ha-omniroute",
@@ -8,5 +8,5 @@
   "iot_class": "local_polling",
   "issue_tracker": "https://github.com/FaserF/ha-omniroute/issues",
   "requirements": [],
-  "version": "1.0.0"
+  "version": "0.1.0"
 }

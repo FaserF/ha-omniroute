@@ -12,6 +12,11 @@ LOGGER: Final = logging.getLogger(__package__)
 
 DEFAULT_NAME: Final = "OmniRoute"
 DEFAULT_API_URL: Final = "http://omniroute:20128/v1"
+DEFAULT_MANUFACTURER: Final = "OmniRoute"
+DEFAULT_MODEL: Final = "AI Gateway & Router"
+
+DATA_COORDINATOR: Final = "coordinator"
+DATA_CLIENT: Final = "client"
 
 # Cascade definitions
 CASCADE_CHAT: Final = "chat-cascade"
@@ -56,7 +61,7 @@ DEFAULT_TTS_MODEL: Final = "tts-latest"
 DEFAULT_TTS_VOICE: Final = "Puck"
 DEFAULT_TTS_SPEED: Final = 1.0
 DEFAULT_TTS_FORMAT: Final = "mp3"
-DEFAULT_STT_MODEL: Final = "stt-latest"
+
 DEFAULT_STT_LANGUAGE: Final = "en"
 DEFAULT_STT_FORMAT: Final = "wav"
 
@@ -80,6 +85,8 @@ PLATFORM_AI_TASK: Final = "ai_task"
 PLATFORMS: Final[list[Platform | str]] = [
     Platform.CONVERSATION,
     Platform.SENSOR,
+    Platform.BINARY_SENSOR,
+    Platform.BUTTON,
     PLATFORM_AI_TASK,
 ]
 
@@ -89,6 +96,7 @@ SUPPORTED_TTS_FORMATS: Final[list[str]] = ["mp3", "opus", "aac", "flac", "wav"]
 # Services
 SERVICE_EXECUTE_AI_TASK: Final = "execute_ai_task"
 SERVICE_GENERATE_IMAGE: Final = "generate_image"
+SERVICE_REFRESH_MODELS: Final = "refresh_models"
 
 # Max tool calling iterations in conversation agent
 MAX_TOOL_ITERATIONS: Final = 10

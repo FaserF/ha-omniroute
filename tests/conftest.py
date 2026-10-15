@@ -79,7 +79,11 @@ class MockEntity:
 
     @property
     def name(self) -> str | None:
-        return self._attr_name
+        if self._attr_name is not None:
+            return self._attr_name
+        if hasattr(self, "entity_description") and self.entity_description:
+            return getattr(self.entity_description, "name", None)
+        return None
 
     @property
     def unique_id(self) -> str | None:
@@ -247,7 +251,12 @@ mock_submodule("homeassistant.helpers.template")
 mock_submodule("homeassistant.helpers.selector")
 mock_submodule("homeassistant.helpers.llm")
 mock_submodule("homeassistant.components.sensor")
+mock_submodule("homeassistant.components.binary_sensor")
+mock_submodule("homeassistant.components.button")
+mock_submodule("homeassistant.components.diagnostics")
 mock_submodule("homeassistant.components.conversation")
+mock_submodule("homeassistant.helpers.device_registry")
+mock_submodule("homeassistant.helpers.entity_registry")
 
 # Assign standard attributes
 ha_const = sys.modules["homeassistant.const"]
@@ -257,8 +266,13 @@ ha_const.Platform = types.SimpleNamespace(
     TTS="tts",
     STT="stt",
     BINARY_SENSOR="binary_sensor",
+    BUTTON="button",
 )
 ha_const.CONF_NAME = "name"
+ha_const.EntityCategory = types.SimpleNamespace(
+    DIAGNOSTIC="diagnostic",
+    CONFIG="config",
+)
 
 ha_core = sys.modules["homeassistant.core"]
 ha_core.HomeAssistant = MagicMock
@@ -317,6 +331,94 @@ sensor_module.SensorDeviceClass = types.SimpleNamespace(
     DURATION="duration",
     DATA_SIZE="data_size",
 )
+
+# Binary Sensor module
+bs_module = sys.modules["homeassistant.components.binary_sensor"]
+
+
+class MockBinarySensorEntity(MockEntity):
+    _attr_is_on: bool = False
+
+    @property
+    def is_on(self) -> bool:
+        return self._attr_is_on
+
+
+bs_module.BinarySensorEntity = MockBinarySensorEntity
+bs_module.BinarySensorEntityDescription = MockEntityDescription
+bs_module.BinarySensorDeviceClass = types.SimpleNamespace(
+    CONNECTIVITY="connectivity",
+    PROBLEM="problem",
+    RUNNING="running",
+)
+
+# Button module
+btn_module = sys.modules["homeassistant.components.button"]
+
+
+class MockButtonEntity(MockEntity):
+    async def async_press(self) -> None:
+        pass
+
+
+btn_module.ButtonEntity = MockButtonEntity
+btn_module.ButtonEntityDescription = MockEntityDescription
+btn_module.ButtonDeviceClass = types.SimpleNamespace(
+    RESTART="restart",
+    UPDATE="update",
+)
+
+# Diagnostics module
+diag_module = sys.modules["homeassistant.components.diagnostics"]
+
+
+def mock_async_redact_data(data: dict[str, Any], to_redact: Any) -> dict[str, Any]:
+    redacted = dict(data)
+    for k in data:
+        if k in to_redact:
+            redacted[k] = "**REDACTED**"
+    return redacted
+
+
+diag_module.async_redact_data = mock_async_redact_data
+
+# Device Registry and Entity Registry
+dr_module = sys.modules["homeassistant.helpers.device_registry"]
+
+
+class MockDeviceInfo(dict):
+    def __init__(self, **kwargs: Any) -> None:
+        super().__init__(**kwargs)
+        for k, v in kwargs.items():
+            setattr(self, k, v)
+
+
+dr_module.DeviceInfo = MockDeviceInfo
+mock_dev_reg = MagicMock()
+mock_dev_reg.devices = {}
+mock_dev_entry = MagicMock()
+mock_dev_entry.id = "dev_123"
+mock_dev_entry.name = "OmniRoute Gateway"
+mock_dev_entry.identifiers = {("omniroute", "test_omniroute_entry")}
+mock_dev_entry.manufacturer = "OmniRoute"
+mock_dev_entry.model = "AI Gateway & Router"
+mock_dev_entry.sw_version = "0.1.0"
+mock_dev_entry.configuration_url = "http://omniroute:20128/v1"
+dr_module.async_get = MagicMock(return_value=mock_dev_reg)
+dr_module.async_entries_for_config_entry = MagicMock(return_value=[mock_dev_entry])
+
+er_module = sys.modules["homeassistant.helpers.entity_registry"]
+mock_ent_reg = MagicMock()
+mock_ent_entry = MagicMock()
+mock_ent_entry.entity_id = "sensor.omniroute_gateway_response_time"
+mock_ent_entry.domain = "sensor"
+mock_ent_entry.platform = "omniroute"
+mock_ent_entry.unique_id = "test_omniroute_entry_latency_ms"
+mock_ent_entry.disabled = False
+mock_ent_entry.disabled_by = None
+mock_ent_entry.entity_category = None
+er_module.async_get = MagicMock(return_value=mock_ent_reg)
+er_module.async_entries_for_config_entry = MagicMock(return_value=[mock_ent_entry])
 
 # Conversation module
 conv_module = sys.modules["homeassistant.components.conversation"]

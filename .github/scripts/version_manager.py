@@ -62,148 +62,119 @@ def write_version(v, manifest_path=None):
         with open(manifest_path, "w", encoding="utf-8") as f:
             json.dump(data, f, indent=2)
             f.write("\n")
-
     if os.path.exists("pyproject.toml"):
         with open("pyproject.toml", encoding="utf-8") as f:
             content = f.read()
-        content = re.sub(r'version = "[^"]+"', f'version = "{v}"', content)
+        content = re.sub(
+            r'^version\s*=\s*".*?"', f'version = "{v}"', content, flags=re.MULTILINE
+        )
         with open("pyproject.toml", "w", encoding="utf-8") as f:
             f.write(content)
 
 
-def bump_calver(current, r_type, level="patch"):
-    now = datetime.datetime.now(datetime.UTC)
-    target_year = now.year
-    target_month = now.month
+def calculate_version(rtype, level="patch", curr=None, now=None, override=None):
+    if override:
+        # Strip leading 'v' if present to normalize
+        if override.lower().startswith("v"):
+            override = override[1:]
+        return override
 
-    match = re.match(r"^v?(\d+)\.(\d+)\.(\d+)(?:b(\d+))?$", current)
+    if now is None:
+        now = datetime.datetime.now()
+    if curr is None:
+        curr = get_current_version(MANIFEST_FILE)
+
+    match = re.match(r"^v?(\d+)\.(\d+)\.(\d+)(?:(b)(\d+)|(-dev)(\d+))?$", curr)
     if not match:
-        curr_y, curr_m, curr_p = target_year, target_month, 0
-        curr_b = None
+        return "1.0.0"
+
+    v1_str, v2_str, v3_str, b_p, b_n, d_p, d_n = match.groups()
+    v1, v2, v3 = int(v1_str), int(v2_str), int(v3_str)
+    stype, snum = ("b", int(b_n)) if b_p else (("-dev", int(d_n)) if d_p else (None, 0))
+
+    # Detect scheme based on major version (e.g. 2026 is CalVer, 1 or 2 is SemVer)
+    is_calver = v1 >= 2020
+
+    if is_calver:
+        # CalVer Bumping Logic (Year.Month.Patch)
+        year, month = now.year, now.month
+        new_cyc = (year != v1) or (month != v2)
+        p = 0 if new_cyc else v3
+
+        if rtype == "stable":
+            if stype:
+                return f"{year}.{month}.{p}"
+            return f"{year}.{month}.0" if new_cyc else f"{year}.{month}.{p + 1}"
+        if rtype == "beta":
+            if new_cyc:
+                return f"{year}.{month}.0b0"
+            if stype == "b":
+                return f"{year}.{month}.{p}b{snum + 1}"
+            if stype == "-dev":
+                return f"{year}.{month}.{p}b0"
+            return f"{year}.{month}.{p + 1}b0"
+        if rtype in ["dev", "nightly"]:
+            if new_cyc:
+                return f"{year}.{month}.0-dev0"
+            if stype == "-dev":
+                return f"{year}.{month}.{p}-dev{snum + 1}"
+            return f"{year}.{month}.{p + 1}-dev0"
     else:
-        curr_y = int(match.group(1))
-        curr_m = int(match.group(2))
-        curr_p = int(match.group(3))
-        curr_b = int(match.group(4)) if match.group(4) is not None else None
+        # SemVer Bumping Logic (Major.Minor.Patch)
+        if rtype == "stable":
+            # Promote an existing pre-release only when staying at the same level.
+            if stype and level == "patch":
+                return f"{v1}.{v2}.{v3}"
+            if level == "major":
+                return f"{v1 + 1}.0.0"
+            if level == "minor":
+                return f"{v1}.{v2 + 1}.0"
+            return f"{v1}.{v2}.{v3 + 1}"
+        if rtype == "beta":
+            # Only reuse current patch when staying at the same level.
+            if stype == "b" and level == "patch":
+                return f"{v1}.{v2}.{v3}b{snum + 1}"
+            if level == "major":
+                return f"{v1 + 1}.0.0b0"
+            if level == "minor":
+                return f"{v1}.{v2 + 1}.0b0"
+            return f"{v1}.{v2}.{v3 + 1}b0"
+        if rtype in ["dev", "nightly"]:
+            # Only reuse current patch when staying at the same level.
+            if stype == "-dev" and level == "patch":
+                return f"{v1}.{v2}.{v3}-dev{snum + 1}"
+            if level == "major":
+                return f"{v1 + 1}.0.0-dev0"
+            if level == "minor":
+                return f"{v1}.{v2 + 1}.0-dev0"
+            return f"{v1}.{v2}.{v3 + 1}-dev0"
 
-    if target_year != curr_y or target_month != curr_m:
-        next_y, next_m, next_p = target_year, target_month, 0
-        next_b = 1 if r_type == "beta" else None
-    else:
-        next_y, next_m = curr_y, curr_m
-        if r_type == "beta":
-            if curr_b is not None:
-                next_p = curr_p
-                next_b = curr_b + 1
-            else:
-                next_p = curr_p + 1
-                next_b = 1
-        else:
-            if curr_b is not None:
-                next_p = curr_p
-            else:
-                next_p = curr_p + 1
-            next_b = None
-
-    if next_b is not None:
-        return f"{next_y}.{next_m}.{next_p}b{next_b}"
-    return f"{next_y}.{next_m}.{next_p}"
-
-
-def bump_semver(current, r_type, level="patch"):
-    clean = current.lstrip("v")
-    match = re.match(r"^(\d+)\.(\d+)\.(\d+)(?:b(\d+))?", clean)
-    if not match:
-        major, minor, patch = 1, 0, 0
-        b_num = None
-    else:
-        major = int(match.group(1))
-        minor = int(match.group(2))
-        patch = int(match.group(3))
-        b_num = int(match.group(4)) if match.group(4) is not None else None
-
-    if r_type == "beta":
-        if b_num is not None:
-            return f"{major}.{minor}.{patch}b{b_num + 1}"
-        if level == "major":
-            major += 1
-            minor = 0
-            patch = 0
-        elif level == "minor":
-            minor += 1
-            patch = 0
-        else:
-            patch += 1
-        return f"{major}.{minor}.{patch}b1"
-
-    # Stable release
-    if b_num is not None:
-        return f"{major}.{minor}.{patch}"
-
-    if level == "major":
-        major += 1
-        minor = 0
-        patch = 0
-    elif level == "minor":
-        minor += 1
-        patch = 0
-    else:
-        patch += 1
-    return f"{major}.{minor}.{patch}"
-
-
-def bump_version(current, r_type, scheme="semver", level="patch"):
-    if scheme == "calver":
-        return bump_calver(current, r_type, level)
-    return bump_semver(current, r_type, level)
+    return curr
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Manage project versions.")
-    subparsers = parser.add_subparsers(dest="command")
+    p = argparse.ArgumentParser()
+    subparsers = p.add_subparsers(dest="command")
 
-    get_parser = subparsers.add_parser("get", help="Get current version")
-    get_parser.add_argument("--manifest", help="Path to manifest.json")
-
-    bump_parser = subparsers.add_parser("bump", help="Bump version")
+    bump_parser = subparsers.add_parser("bump")
     bump_parser.add_argument(
-        "--type",
-        choices=["stable", "beta", "nightly"],
-        default="stable",
-        help="Release type",
+        "--type", choices=["stable", "beta", "dev", "nightly"], required=True
     )
     bump_parser.add_argument(
-        "--scheme",
-        choices=["semver", "calver"],
-        default="semver",
-        help="Versioning scheme",
+        "--level", choices=["major", "minor", "patch"], default="patch"
     )
-    bump_parser.add_argument(
-        "--level",
-        choices=["major", "minor", "patch"],
-        default="patch",
-        help="Bump level for semver",
-    )
-    bump_parser.add_argument("--manifest", help="Path to manifest.json")
+    bump_parser.add_argument("--override", default=None)
 
-    set_parser = subparsers.add_parser("set", help="Set version directly")
-    set_parser.add_argument("version", help="Version string to set")
-    set_parser.add_argument("--manifest", help="Path to manifest.json")
+    args = p.parse_args()
 
-    args = parser.parse_args()
-
-    if args.command == "get":
-        print(get_current_version(args.manifest))
-    elif args.command == "bump":
-        current = get_current_version(args.manifest)
-        new_version = bump_version(current, args.type, args.scheme, args.level)
-        write_version(new_version, args.manifest)
-        print(new_version)
-    elif args.command == "set":
-        write_version(args.version, args.manifest)
-        print(args.version)
-    else:
-        parser.print_help()
+    if args.command == "bump":
+        # Handle empty string override values from workflow inputs
+        override_val = (
+            args.override if args.override and args.override.strip() else None
+        )
+        new_v = calculate_version(args.type, args.level, override=override_val)
+        write_version(new_v)
+        print(new_v)
 
 
 if __name__ == "__main__":

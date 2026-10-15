@@ -50,8 +50,11 @@ def build_changelog(commits, url):
 
 if __name__ == "__main__":
     p = argparse.ArgumentParser()
-    p.add_argument("--tag", default=None)
-    p.add_argument("--url", default="")
+    p.add_argument("--from-tag")
+    p.add_argument("--repo-url", required=True)
+    p.add_argument("--output", default="CHANGELOG_BODY.md")
     args = p.parse_args()
-    commits = get_commits(args.tag)
-    print(build_changelog(commits, args.url.rstrip("/")))
+    commits = get_commits(args.from_tag)
+    changelog = build_changelog(commits, args.repo_url)
+    with open(args.output, "w", encoding="utf-8") as f:
+        f.write(changelog)

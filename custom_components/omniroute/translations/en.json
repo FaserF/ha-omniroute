@@ -2,7 +2,7 @@
   "config": {
     "step": {
       "user": {
-        "title": "Connect to OmniRoute & Hermes AI Gateway",
+        "title": "Connect to OmniRoute",
         "description": "Configure the API endpoint URL and optional API key for your OmniRoute instance.",
         "data": {
           "api_url": "API URL",
@@ -54,6 +54,25 @@
       },
       "quota_health": {
         "name": "Quota Health"
+      }
+    },
+    "binary_sensor": {
+      "connected": {
+        "name": "Connected"
+      },
+      "healthy": {
+        "name": "Healthy"
+      }
+    },
+    "button": {
+      "web_ui": {
+        "name": "Web UI"
+      },
+      "refresh_models": {
+        "name": "Reload Models"
+      },
+      "ping_gateway": {
+        "name": "Ping Gateway"
       }
     },
     "conversation": {
@@ -119,6 +138,10 @@
           "description": "Number of images to generate."
         }
       }
+    },
+    "refresh_models": {
+      "name": "Reload Models",
+      "description": "Force an immediate refresh of available models and cascades from the gateway."
     }
   }
 }

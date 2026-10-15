@@ -1,7 +1,7 @@
 [project]
 name = "ha-omniroute"
-version = "1.0.0"
-description = "Home Assistant integration for OmniRoute & Hermes AI Cognitive Engine."
+version = "0.1.0"
+description = "Home Assistant integration for OmniRoute AI Gateway & Router."
 authors = [
     {name = "FaserF", email = "github@fabiseitz.de"}
 ]
