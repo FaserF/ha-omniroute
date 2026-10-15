@@ -34,9 +34,7 @@ async def async_setup_entry(
     client: OmniRouteClient = entry_data[DATA_CLIENT]
 
     entities: list[ButtonEntity] = [
-        OmniRouteWebUIButton(coordinator, client, entry),
         OmniRouteRefreshButton(coordinator, client, entry),
-        OmniRoutePingButton(coordinator, client, entry),
     ]
 
     async_add_entities(entities)
@@ -66,42 +64,6 @@ class OmniRouteButton(CoordinatorEntity[OmniRouteDataUpdateCoordinator], ButtonE
         self._attr_device_info = get_device_info(entry, sw_version)
 
 
-class OmniRouteWebUIButton(OmniRouteButton):
-    """Button to open or probe OmniRoute Web UI."""
-
-    def __init__(
-        self,
-        coordinator: OmniRouteDataUpdateCoordinator,
-        client: OmniRouteClient,
-        entry: ConfigEntry,
-    ) -> None:
-        """Initialize Web UI button."""
-        super().__init__(
-            coordinator,
-            client,
-            entry,
-            ButtonEntityDescription(
-                key="web_ui",
-                name="Web UI",
-                icon="mdi:open-in-new",
-                entity_category=EntityCategory.DIAGNOSTIC,
-            ),
-        )
-
-    @property
-    def extra_state_attributes(self) -> dict[str, Any]:
-        """Return attributes including URL."""
-        return {
-            "web_ui_url": self.entry.data.get(CONF_API_URL),
-        }
-
-    async def async_press(self) -> None:
-        """Handle button press by refreshing health status."""
-        _LOGGER.debug("Web UI button pressed for %s", self.entry.entry_id)
-        await self.client.async_check_health()
-        await self.coordinator.async_refresh()
-
-
 class OmniRouteRefreshButton(OmniRouteButton):
     """Button to force reload models and cascade cache."""
 
@@ -127,33 +89,4 @@ class OmniRouteRefreshButton(OmniRouteButton):
     async def async_press(self) -> None:
         """Force refresh data in coordinator."""
         _LOGGER.info("Reloading OmniRoute models cache for %s", self.entry.entry_id)
-        await self.coordinator.async_refresh()
-
-
-class OmniRoutePingButton(OmniRouteButton):
-    """Button to ping gateway and update latency metrics."""
-
-    def __init__(
-        self,
-        coordinator: OmniRouteDataUpdateCoordinator,
-        client: OmniRouteClient,
-        entry: ConfigEntry,
-    ) -> None:
-        """Initialize ping button."""
-        super().__init__(
-            coordinator,
-            client,
-            entry,
-            ButtonEntityDescription(
-                key="ping_gateway",
-                name="Ping Gateway",
-                icon="mdi:lan-check",
-                entity_category=EntityCategory.DIAGNOSTIC,
-            ),
-        )
-
-    async def async_press(self) -> None:
-        """Ping gateway and trigger coordinator refresh."""
-        _LOGGER.debug("Pinging OmniRoute gateway for %s", self.entry.entry_id)
-        await self.client.async_check_health()
         await self.coordinator.async_refresh()
