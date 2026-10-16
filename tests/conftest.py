@@ -253,6 +253,9 @@ mock_submodule("homeassistant.helpers.llm")
 mock_submodule("homeassistant.components.sensor")
 mock_submodule("homeassistant.components.binary_sensor")
 mock_submodule("homeassistant.components.button")
+mock_submodule("homeassistant.components.select")
+mock_submodule("homeassistant.components.switch")
+mock_submodule("homeassistant.components.image")
 mock_submodule("homeassistant.components.diagnostics")
 mock_submodule("homeassistant.components.conversation")
 mock_submodule("homeassistant.helpers.device_registry")
@@ -267,6 +270,9 @@ ha_const.Platform = types.SimpleNamespace(
     STT="stt",
     BINARY_SENSOR="binary_sensor",
     BUTTON="button",
+    SELECT="select",
+    SWITCH="switch",
+    IMAGE="image",
 )
 ha_const.CONF_NAME = "name"
 ha_const.EntityCategory = types.SimpleNamespace(
@@ -367,6 +373,62 @@ btn_module.ButtonDeviceClass = types.SimpleNamespace(
     RESTART="restart",
     UPDATE="update",
 )
+
+# Select module
+select_module = sys.modules["homeassistant.components.select"]
+
+
+class MockSelectEntity(MockEntity):
+    _attr_current_option: str | None = None
+    _attr_options: list[str] = []
+
+    @property
+    def current_option(self) -> str | None:
+        return self._attr_current_option
+
+    @property
+    def options(self) -> list[str]:
+        return self._attr_options
+
+    async def async_select_option(self, option: str) -> None:
+        self._attr_current_option = option
+
+
+select_module.SelectEntity = MockSelectEntity
+select_module.SelectEntityDescription = MockEntityDescription
+
+# Switch module
+switch_module = sys.modules["homeassistant.components.switch"]
+
+
+class MockSwitchEntity(MockEntity):
+    _attr_is_on: bool = False
+
+    @property
+    def is_on(self) -> bool:
+        return self._attr_is_on
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        self._attr_is_on = True
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        self._attr_is_on = False
+
+
+switch_module.SwitchEntity = MockSwitchEntity
+switch_module.SwitchEntityDescription = MockEntityDescription
+
+# Image module
+image_module = sys.modules["homeassistant.components.image"]
+
+
+class MockImageEntity(MockEntity):
+    def __init__(self, hass: Any) -> None:
+        self.hass = hass
+
+
+image_module.ImageEntity = MockImageEntity
+
 
 # Diagnostics module
 diag_module = sys.modules["homeassistant.components.diagnostics"]
