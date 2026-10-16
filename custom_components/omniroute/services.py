@@ -366,7 +366,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
             "raw_response": content,
         }
 
-    if not hass.services.has_service(DOMAIN, SERVICE_EXECUTE_AI_TASK):
+    if not (hass.services.has_service(DOMAIN, SERVICE_EXECUTE_AI_TASK) is True):
         hass.services.async_register(
             DOMAIN,
             SERVICE_EXECUTE_AI_TASK,
@@ -375,7 +375,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
             supports_response=SupportsResponse.OPTIONAL,
         )
 
-    if not hass.services.has_service(DOMAIN, SERVICE_GENERATE_IMAGE):
+    if not (hass.services.has_service(DOMAIN, SERVICE_GENERATE_IMAGE) is True):
         hass.services.async_register(
             DOMAIN,
             SERVICE_GENERATE_IMAGE,
@@ -384,7 +384,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
             supports_response=SupportsResponse.OPTIONAL,
         )
 
-    if not hass.services.has_service(DOMAIN, SERVICE_REFRESH_MODELS):
+    if not (hass.services.has_service(DOMAIN, SERVICE_REFRESH_MODELS) is True):
         hass.services.async_register(
             DOMAIN,
             SERVICE_REFRESH_MODELS,
@@ -392,7 +392,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
             schema=REFRESH_MODELS_SCHEMA,
         )
 
-    if not hass.services.has_service(DOMAIN, SERVICE_ANALYZE_CAMERA):
+    if not (hass.services.has_service(DOMAIN, SERVICE_ANALYZE_CAMERA) is True):
         hass.services.async_register(
             DOMAIN,
             SERVICE_ANALYZE_CAMERA,
@@ -401,7 +401,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
             supports_response=SupportsResponse.OPTIONAL,
         )
 
-    if not hass.services.has_service(DOMAIN, SERVICE_GENERATE_EMBEDDING):
+    if not (hass.services.has_service(DOMAIN, SERVICE_GENERATE_EMBEDDING) is True):
         hass.services.async_register(
             DOMAIN,
             SERVICE_GENERATE_EMBEDDING,
@@ -410,7 +410,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
             supports_response=SupportsResponse.OPTIONAL,
         )
 
-    if not hass.services.has_service(DOMAIN, SERVICE_FLUSH_CACHE):
+    if not (hass.services.has_service(DOMAIN, SERVICE_FLUSH_CACHE) is True):
         hass.services.async_register(
             DOMAIN,
             SERVICE_FLUSH_CACHE,
@@ -418,7 +418,7 @@ def async_setup_services(hass: HomeAssistant) -> None:
             schema=FLUSH_CACHE_SCHEMA,
         )
 
-    if not hass.services.has_service(DOMAIN, SERVICE_SUGGEST_AUTOMATIONS):
+    if not (hass.services.has_service(DOMAIN, SERVICE_SUGGEST_AUTOMATIONS) is True):
         hass.services.async_register(
             DOMAIN,
             SERVICE_SUGGEST_AUTOMATIONS,
