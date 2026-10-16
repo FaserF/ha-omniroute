@@ -88,6 +88,8 @@ PLATFORMS: Final[list[Platform | str]] = [
     Platform.SENSOR,
     Platform.BINARY_SENSOR,
     Platform.BUTTON,
+    Platform.TTS,
+    Platform.STT,
     PLATFORM_AI_TASK,
 ]
 
