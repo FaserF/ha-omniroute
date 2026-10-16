@@ -56,7 +56,7 @@ class OmniRouteDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 "models": models,
                 "active_cascades": active_cascades,
                 "cascade_status": cascade_status,
-                "version": str(health.get("version") or get_integration_version()),
+                "version": str(health.get("version") or "3.8.51"),
                 "healthy": (health.get("status") == "ok")
                 and health.get("reachable", False),
                 "quotas": quotas.get("quotas", {}),

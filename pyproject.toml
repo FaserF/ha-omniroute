@@ -1,6 +1,6 @@
 [project]
 name = "ha-omniroute"
-version = "0.3.7-dev0"
+version = "1.0.0"
 description = "Home Assistant integration for OmniRoute AI Gateway & Router."
 authors = [
     {name = "FaserF", email = "github@fabiseitz.de"}

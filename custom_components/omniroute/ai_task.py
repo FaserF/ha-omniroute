@@ -82,15 +82,16 @@ class OmniRouteAITaskEntity(CoordinatorEntity[OmniRouteDataUpdateCoordinator], E
             self._attr_supported_features = 7
 
     @property
-    def state(self) -> str:
-        """Return the state of the entity."""
-        return self._state
+    def state(self) -> str | None:
+        """Return the state of the entity (timestamp of last execution for ai_task domain)."""
+        return self._last_task_timestamp
 
     @property
     def extra_state_attributes(self) -> dict[str, Any]:
         """Return extra state attributes."""
         options = self.entry.options
         return {
+            "status": self._state,
             "model": options.get(CONF_AI_TASK_MODEL, DEFAULT_AI_TASK_MODEL),
             "temperature": options.get(
                 CONF_AI_TASK_TEMPERATURE, DEFAULT_AI_TASK_TEMPERATURE

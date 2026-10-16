@@ -26,7 +26,7 @@ def set_integration_version(version: str) -> None:
 
 def get_device_info(entry: ConfigEntry, sw_version: str | None = None) -> DeviceInfo:
     """Return device registry DeviceInfo for OmniRoute entry."""
-    version = sw_version or get_integration_version() or None
+    version = sw_version or "3.8.51"
     return DeviceInfo(
         identifiers={(DOMAIN, entry.entry_id)},
         name="OmniRoute Gateway",

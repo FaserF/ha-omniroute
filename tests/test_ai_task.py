@@ -58,7 +58,8 @@ async def test_ai_task_execution(hass, mock_config_entry):
     assert result["success"] is True
     assert result["response"] == "Reasoning complete."
     assert result["model"] == "coding-cascade"
-    assert entity.state == "ready"
+    assert entity.state == entity._last_task_timestamp
+    assert entity.extra_state_attributes["status"] == "ready"
 
     attrs = entity.extra_state_attributes
     assert attrs["tasks_executed"] == 1
