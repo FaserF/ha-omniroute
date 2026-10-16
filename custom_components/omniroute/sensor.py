@@ -66,7 +66,10 @@ SENSOR_DESCRIPTIONS: tuple[OmniRouteSensorEntityDescription, ...] = (
         icon="mdi:robot",
         state_class=SensorStateClass.TOTAL,
         value_fn=lambda data: data.get("models_count", 0),
-        extra_fn=lambda data: {"models": data.get("models", [])},
+        extra_fn=lambda data: {
+            "total_models": data.get("models_count", 0),
+            "sample_models": (data.get("models", []) or [])[:20],
+        },
     ),
     OmniRouteSensorEntityDescription(
         key="quota_health",
