@@ -61,5 +61,5 @@ venv.bak/
 *.swp
 *.swo
 
-# macOS
-.DS_Store
+# Archives
+*.zip
