@@ -128,8 +128,12 @@ class OmniRouteSTTEntity(
                     if hasattr(metadata, "channel")
                     else 1
                 )
-                sampwidth = int(getattr(metadata.bit_rate, "value", metadata.bit_rate)) // 8
-                framerate = int(getattr(metadata.sample_rate, "value", metadata.sample_rate))
+                sampwidth = (
+                    int(getattr(metadata.bit_rate, "value", metadata.bit_rate)) // 8
+                )
+                framerate = int(
+                    getattr(metadata.sample_rate, "value", metadata.sample_rate)
+                )
 
                 wav_buf = io.BytesIO()
                 with wave.open(wav_buf, "wb") as wav_file:
