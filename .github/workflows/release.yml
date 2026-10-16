@@ -1,4 +1,4 @@
-﻿---
+---
 name: Release
 
 on:
@@ -25,7 +25,7 @@ on:
           - major
 
       version_override:
-        description: "Manually override new version (e.g. 1.2.3 or 2026.6.2b1). Leave empty to use automatic calculation."
+        description: "Manually override new version (e.g. 1.2.3 or 0.4.0). Leave empty to use automatic calculation."
         required: false
         type: string
   push:
