@@ -33,9 +33,16 @@ class OmniRouteDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
         """Fetch data from OmniRoute."""
         try:
             health = await self.client.async_check_health()
-            models = await self.client.async_get_models()
+            try:
+                models = await self.client.async_get_models()
+                self.models = models
+            except (CannotConnect, OmniRouteError) as err:
+                if self.models:
+                    LOGGER.debug("Could not refresh models, using cached list: %s", err)
+                    models = self.models
+                else:
+                    raise
             quotas = await self.client.async_get_quotas()
-            self.models = models
 
             # Check cascade availability
             active_cascades = [c for c in DEFAULT_CASCADES if c in models]
