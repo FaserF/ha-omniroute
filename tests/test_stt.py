@@ -10,6 +10,7 @@ from homeassistant.components.stt import (
     AudioFormats,
     AudioSampleRates,
     SpeechMetadata,
+    SpeechResultState,
 )
 
 from custom_components.omniroute.const import (
@@ -94,8 +95,8 @@ async def test_stt_process_audio_stream_success(mock_config_entry):
     )
 
     result = await entity.async_process_audio_stream(metadata, sample_stream())
-    assert result.result == "Turn on the living room light"
-    assert result.success is True
+    assert result.text == "Turn on the living room light"
+    assert result.result == SpeechResultState.SUCCESS
     assert mock_client.async_speech_to_text.called
 
 
@@ -122,5 +123,5 @@ async def test_stt_process_audio_stream_failure(mock_config_entry):
     )
 
     result = await entity.async_process_audio_stream(metadata, sample_stream())
-    assert result.result == ""
-    assert result.success is False
+    assert result.text == ""
+    assert result.result == SpeechResultState.ERROR

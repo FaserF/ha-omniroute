@@ -37,6 +37,7 @@ BINARY_SENSORS: tuple[OmniRouteBinarySensorDescription, ...] = (
         translation_key="connected",
         device_class=BinarySensorDeviceClass.CONNECTIVITY,
         entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
         is_on_fn=lambda data: bool(data.get("reachable", False)),
     ),
     OmniRouteBinarySensorDescription(
@@ -45,6 +46,7 @@ BINARY_SENSORS: tuple[OmniRouteBinarySensorDescription, ...] = (
         translation_key="healthy",
         icon="mdi:heart-pulse",
         entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
         is_on_fn=lambda data: bool(data.get("healthy", False)),
         attrs_fn=lambda data: {
             "status": data.get("status", "unknown"),

@@ -10,6 +10,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 
 from .client import CannotConnect, InvalidAuth, OmniRouteClient, OmniRouteError
 from .const import DEFAULT_CASCADES, DOMAIN, LOGGER
+from .helpers import get_integration_version
 
 UPDATE_INTERVAL = timedelta(seconds=60)
 
@@ -48,7 +49,7 @@ class OmniRouteDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                 "models": models,
                 "active_cascades": active_cascades,
                 "cascade_status": cascade_status,
-                "version": str(health.get("version", "1.0.0")),
+                "version": str(health.get("version") or get_integration_version()),
                 "healthy": (health.get("status") == "ok")
                 and health.get("reachable", False),
                 "quotas": quotas.get("quotas", {}),

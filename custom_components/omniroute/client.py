@@ -119,6 +119,26 @@ class OmniRouteClient:
         # Fallback empty quotas structure
         return {"quotas": {}, "providers": {}}
 
+    async def _async_get_server_version(self) -> str | None:
+        """Attempt to fetch version from OmniRoute server endpoints."""
+        headers = self._get_headers()
+        for endpoint in (
+            f"{self._root_url}/api/system/version",
+            f"{self._root_url}/api/version",
+        ):
+            try:
+                async with asyncio.timeout(3.0):
+                    async with self._session.get(endpoint, headers=headers) as resp:
+                        if resp.status == 200:
+                            data = await resp.json()
+                            if isinstance(data, dict):
+                                val = data.get("version") or data.get("current")
+                                if val:
+                                    return str(val)
+            except Exception:
+                continue
+        return None
+
     async def async_check_health(self) -> dict[str, Any]:
         """Check gateway health and measure latency."""
         health_url = f"{self._root_url}/api/health"
@@ -135,13 +155,19 @@ class OmniRouteClient:
                             if isinstance(health_data, dict):
                                 health_data["latency_ms"] = latency_ms
                                 health_data["reachable"] = True
+                                if "version" not in health_data:
+                                    s_ver = await self._async_get_server_version()
+                                    if s_ver:
+                                        health_data["version"] = s_ver
                                 return health_data
                         except Exception as exc:
                             LOGGER.debug("Could not parse /api/health JSON: %s", exc)
+                        s_ver = await self._async_get_server_version()
                         return {
                             "status": "ok",
                             "latency_ms": latency_ms,
                             "reachable": True,
+                            "version": s_ver,
                         }
         except Exception as exc:
             LOGGER.debug("Health endpoint /api/health unavailable: %s", exc)
@@ -151,19 +177,7 @@ class OmniRouteClient:
         try:
             models = await self.async_get_models()
             latency_ms = round((time.perf_counter() - start) * 1000, 2)
-            # Query version from /v1/version if available, or fall back to version header/default
-            server_version = "1.0.0"
-            try:
-                async with asyncio.timeout(5.0):
-                    async with self._session.get(
-                        f"{self._v1_url}/version", headers=headers
-                    ) as v_resp:
-                        if v_resp.status == 200:
-                            v_data = await v_resp.json()
-                            if isinstance(v_data, dict) and "version" in v_data:
-                                server_version = str(v_data["version"])
-            except Exception:
-                pass
+            server_version = await self._async_get_server_version()
 
             return {
                 "status": "ok",
@@ -177,7 +191,7 @@ class OmniRouteClient:
                 "status": "offline",
                 "latency_ms": None,
                 "reachable": False,
-                "version": "1.0.0",
+                "version": None,
                 "error": str(err),
             }
 
