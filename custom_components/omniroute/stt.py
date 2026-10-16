@@ -30,6 +30,7 @@ from .const import (
     LOGGER,
 )
 from .coordinator import OmniRouteDataUpdateCoordinator
+from .helpers import get_device_info
 
 
 async def async_setup_entry(
@@ -64,12 +65,10 @@ class OmniRouteSTTEntity(
         self.entry = entry
         self.client = client
         self._attr_unique_id = f"{entry.entry_id}_stt"
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, entry.entry_id)},
-            "name": "OmniRoute Gateway",
-            "manufacturer": "FaserF",
-            "model": "Hermes AI Gateway",
-        }
+        sw_version = None
+        if coordinator.data:
+            sw_version = coordinator.data.get("version")
+        self._attr_device_info = get_device_info(entry, sw_version)
 
     @property
     def supported_languages(self) -> list[str]:

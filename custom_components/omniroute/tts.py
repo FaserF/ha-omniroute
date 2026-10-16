@@ -28,6 +28,7 @@ from .const import (
     SUPPORTED_TTS_FORMATS,
 )
 from .coordinator import OmniRouteDataUpdateCoordinator
+from .helpers import get_device_info
 
 
 async def async_setup_entry(
@@ -62,12 +63,10 @@ class OmniRouteTTSEntity(
         self.entry = entry
         self.client = client
         self._attr_unique_id = f"{entry.entry_id}_tts"
-        self._attr_device_info = {
-            "identifiers": {(DOMAIN, entry.entry_id)},
-            "name": "OmniRoute Gateway",
-            "manufacturer": "FaserF",
-            "model": "Hermes AI Gateway",
-        }
+        sw_version = None
+        if coordinator.data:
+            sw_version = coordinator.data.get("version")
+        self._attr_device_info = get_device_info(entry, sw_version)
 
     @property
     def supported_languages(self) -> list[str]:
