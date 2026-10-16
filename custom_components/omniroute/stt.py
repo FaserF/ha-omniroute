@@ -114,6 +114,33 @@ class OmniRouteSTTEntity(
             audio_chunks.append(chunk)
         audio_data = b"".join(audio_chunks)
 
+        if not audio_data:
+            return SpeechResult("", SpeechResultState.ERROR)
+
+        # Ensure raw PCM streams are properly wrapped in a WAV container with RIFF header
+        if not audio_data.startswith(b"RIFF"):
+            try:
+                import io
+                import wave
+
+                channels = int(
+                    getattr(metadata.channel, "value", metadata.channel)
+                    if hasattr(metadata, "channel")
+                    else 1
+                )
+                sampwidth = int(getattr(metadata.bit_rate, "value", metadata.bit_rate)) // 8
+                framerate = int(getattr(metadata.sample_rate, "value", metadata.sample_rate))
+
+                wav_buf = io.BytesIO()
+                with wave.open(wav_buf, "wb") as wav_file:
+                    wav_file.setnchannels(channels)
+                    wav_file.setsampwidth(sampwidth)
+                    wav_file.setframerate(framerate)
+                    wav_file.writeframes(audio_data)
+                audio_data = wav_buf.getvalue()
+            except Exception as enc_err:
+                LOGGER.warning("Could not wrap audio into WAV container: %s", enc_err)
+
         options = self.entry.options
         model = options.get(CONF_STT_MODEL, DEFAULT_STT_MODEL)
         language = options.get(CONF_STT_LANGUAGE, DEFAULT_STT_LANGUAGE)

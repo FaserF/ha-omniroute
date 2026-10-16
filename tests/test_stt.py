@@ -98,6 +98,65 @@ async def test_stt_process_audio_stream_success(mock_config_entry):
     assert result.text == "Turn on the living room light"
     assert result.result == SpeechResultState.SUCCESS
     assert mock_client.async_speech_to_text.called
+    sent_audio = mock_client.async_speech_to_text.call_args[0][0]
+    assert sent_audio.startswith(b"RIFF")
+
+
+@pytest.mark.asyncio
+async def test_stt_process_audio_stream_already_riff(mock_config_entry):
+    """Test STT when audio stream is already a RIFF WAV file."""
+    mock_client = MagicMock()
+    mock_client.async_speech_to_text = AsyncMock(return_value="Hello world")
+    mock_coord = MagicMock()
+    mock_coord.data = {"version": "1.0.0"}
+
+    entity = OmniRouteSTTEntity(mock_config_entry, mock_client, mock_coord)
+
+    riff_data = b"RIFF\x24\x00\x00\x00WAVEfmt \x10\x00\x00\x00"
+
+    async def sample_stream():
+        yield riff_data
+
+    metadata = SpeechMetadata(
+        language="en",
+        format=AudioFormats.WAV,
+        codec=AudioCodecs.PCM,
+        bit_rate=AudioBitRates.BITRATE_16,
+        sample_rate=AudioSampleRates.SAMPLERATE_16000,
+        channel=AudioChannels.CHANNEL_MONO,
+    )
+
+    result = await entity.async_process_audio_stream(metadata, sample_stream())
+    assert result.text == "Hello world"
+    assert result.result == SpeechResultState.SUCCESS
+    assert mock_client.async_speech_to_text.call_args[0][0] == riff_data
+
+
+@pytest.mark.asyncio
+async def test_stt_process_audio_stream_empty(mock_config_entry):
+    """Test STT when audio stream yields no data."""
+    mock_client = MagicMock()
+    mock_coord = MagicMock()
+    mock_coord.data = {"version": "1.0.0"}
+
+    entity = OmniRouteSTTEntity(mock_config_entry, mock_client, mock_coord)
+
+    async def sample_stream():
+        if False:
+            yield b""
+
+    metadata = SpeechMetadata(
+        language="en",
+        format=AudioFormats.WAV,
+        codec=AudioCodecs.PCM,
+        bit_rate=AudioBitRates.BITRATE_16,
+        sample_rate=AudioSampleRates.SAMPLERATE_16000,
+        channel=AudioChannels.CHANNEL_MONO,
+    )
+
+    result = await entity.async_process_audio_stream(metadata, sample_stream())
+    assert result.text == ""
+    assert result.result == SpeechResultState.ERROR
 
 
 @pytest.mark.asyncio
