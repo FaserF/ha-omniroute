@@ -10,7 +10,6 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, Upda
 
 from .client import CannotConnect, InvalidAuth, OmniRouteClient, OmniRouteError
 from .const import DEFAULT_CASCADES, DOMAIN, LOGGER
-from .helpers import get_integration_version
 
 UPDATE_INTERVAL = timedelta(seconds=60)
 
