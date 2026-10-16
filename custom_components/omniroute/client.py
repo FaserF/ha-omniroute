@@ -42,6 +42,7 @@ class OmniRouteClient:
         self._session = session
         self._api_key = api_key
         self._timeout = timeout
+        self._compression_enabled = True
 
         clean_url = api_url.rstrip("/")
         if clean_url.endswith("/v1"):
@@ -50,6 +51,16 @@ class OmniRouteClient:
         else:
             self._v1_url = f"{clean_url}/v1"
             self._root_url = clean_url
+
+    @property
+    def compression_enabled(self) -> bool:
+        """Return whether prompt token compression is enabled."""
+        return self._compression_enabled
+
+    @compression_enabled.setter
+    def compression_enabled(self, val: bool) -> None:
+        """Set token compression state."""
+        self._compression_enabled = bool(val)
 
     @property
     def v1_url(self) -> str:
@@ -69,6 +80,8 @@ class OmniRouteClient:
         }
         if self._api_key:
             headers["Authorization"] = f"Bearer {self._api_key}"
+        if self._compression_enabled:
+            headers["x-omniroute-compression"] = "true"
         return headers
 
     async def async_get_models(self) -> list[str]:
@@ -414,3 +427,95 @@ class OmniRouteClient:
             raise OmniRouteError(
                 f"Unexpected error during image generation: {err}"
             ) from err
+
+    async def async_flush_cache(self) -> bool:
+        """Clear route and model resolution caches in OmniRoute."""
+        url = f"{self._root_url}/api/cli-tools/flush-cache"
+        headers = self._get_headers()
+        try:
+            async with asyncio.timeout(10.0):
+                async with self._session.post(url, headers=headers) as resp:
+                    if resp.status in (200, 204):
+                        return True
+                    fallback_url = f"{self._root_url}/api/cache/clear"
+                    async with self._session.post(
+                        fallback_url, headers=headers
+                    ) as fb_resp:
+                        return fb_resp.status in (200, 204)
+        except Exception as exc:
+            LOGGER.debug("Cache flush endpoint failed: %s", exc)
+            return False
+
+    async def async_generate_embedding(
+        self,
+        input_text: str | list[str],
+        model: str = "text-embedding-3-small",
+    ) -> list[float] | list[list[float]]:
+        """Generate text vector embeddings."""
+        url = f"{self._v1_url}/embeddings"
+        headers = self._get_headers()
+        headers["Content-Type"] = "application/json"
+        payload = {"model": model, "input": input_text}
+
+        try:
+            async with asyncio.timeout(self._timeout):
+                async with self._session.post(
+                    url, headers=headers, json=payload
+                ) as resp:
+                    if resp.status == 401:
+                        raise InvalidAuth("Invalid authentication token")
+                    if resp.status != 200:
+                        raise OmniRouteError(
+                            f"HTTP {resp.status} during embedding: {await resp.text()}"
+                        )
+                    data = await resp.json()
+                    res_data = data.get("data", [])
+                    if isinstance(input_text, list):
+                        return [item.get("embedding", []) for item in res_data]
+                    if res_data:
+                        return res_data[0].get("embedding", [])
+                    return []
+        except (TimeoutError, aiohttp.ClientError) as err:
+            raise CannotConnect(f"Connection error during embedding: {err}") from err
+        except (InvalidAuth, OmniRouteError):
+            raise
+        except Exception as err:
+            raise OmniRouteError(f"Unexpected error during embedding: {err}") from err
+
+    async def async_analyze_camera_image(
+        self,
+        image_bytes: bytes,
+        prompt: str = "Describe in detail what you see in this security camera snapshot.",
+        model: str | None = None,
+    ) -> dict[str, Any]:
+        """Analyze a camera image using multimodal vision."""
+        import base64
+
+        b64_image = base64.b64encode(image_bytes).decode("ascii")
+        data_uri = f"data:image/jpeg;base64,{b64_image}"
+        chosen_model = model or "coding-cascade"
+
+        messages = [
+            {
+                "role": "user",
+                "content": [
+                    {"type": "text", "text": prompt},
+                    {"type": "image_url", "image_url": {"url": data_uri}},
+                ],
+            }
+        ]
+
+        start = time.perf_counter()
+        resp = await self.async_chat_completion(messages=messages, model=chosen_model)
+        latency_ms = round((time.perf_counter() - start) * 1000, 2)
+        choices = resp.get("choices", [])
+        content = ""
+        if choices and "message" in choices[0]:
+            content = str(choices[0]["message"].get("content", ""))
+
+        return {
+            "response": content,
+            "model": chosen_model,
+            "latency_ms": latency_ms,
+            "usage": resp.get("usage", {}),
+        }

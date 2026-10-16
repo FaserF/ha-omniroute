@@ -60,6 +60,11 @@ def test_binary_sensor_values_and_device_info(mock_config_entry):
 
     assert sensors_by_key["connected"].is_on is True
     assert sensors_by_key["healthy"].is_on is True
+    assert sensors_by_key["provider_gemini"].is_on is True
+    assert sensors_by_key["provider_anthropic"].is_on is True
+    assert sensors_by_key["provider_openai"].is_on is True
+    assert sensors_by_key["provider_deepseek"].is_on is True
+    assert sensors_by_key["provider_groq"].is_on is True
     attrs = sensors_by_key["healthy"].extra_state_attributes
     assert attrs is not None
     assert attrs["status"] == "ok"
@@ -71,16 +76,22 @@ def test_binary_sensor_values_and_device_info(mock_config_entry):
     assert dev_info["model"] == DEFAULT_MODEL
     assert dev_info["configuration_url"] == "http://omniroute:20128"
 
-    # Test offline / degraded state
+    # Test offline / degraded state with provider error
     mock_coord.data = {
         "reachable": False,
         "healthy": False,
         "status": "error",
         "active_cascades": [],
         "version": "1.0.0",
+        "providers": {
+            "google": {"status": "error"},
+            "openai": {"status": "ok"},
+        },
     }
     assert sensors_by_key["connected"].is_on is False
     assert sensors_by_key["healthy"].is_on is False
+    assert sensors_by_key["provider_gemini"].is_on is False
+    assert sensors_by_key["provider_openai"].is_on is True
 
 
 def test_binary_sensor_none_data(mock_config_entry):

@@ -34,6 +34,7 @@ async def async_setup_entry(
 
     entities: list[ButtonEntity] = [
         OmniRouteRefreshButton(coordinator, client, entry),
+        OmniRouteFlushCacheButton(coordinator, client, entry),
     ]
 
     async_add_entities(entities)
@@ -88,4 +89,33 @@ class OmniRouteRefreshButton(OmniRouteButton):
     async def async_press(self) -> None:
         """Force refresh data in coordinator."""
         _LOGGER.info("Reloading OmniRoute models cache for %s", self.entry.entry_id)
+        await self.coordinator.async_refresh()
+
+
+class OmniRouteFlushCacheButton(OmniRouteButton):
+    """Button to clear route and model resolution caches in OmniRoute."""
+
+    def __init__(
+        self,
+        coordinator: OmniRouteDataUpdateCoordinator,
+        client: OmniRouteClient,
+        entry: ConfigEntry,
+    ) -> None:
+        """Initialize flush cache button."""
+        super().__init__(
+            coordinator,
+            client,
+            entry,
+            ButtonEntityDescription(
+                key="flush_cache",
+                name="Flush Cache",
+                icon="mdi:cached",
+                entity_category=EntityCategory.CONFIG,
+            ),
+        )
+
+    async def async_press(self) -> None:
+        """Clear OmniRoute gateway caches."""
+        _LOGGER.info("Flushing OmniRoute caches for %s", self.entry.entry_id)
+        await self.client.async_flush_cache()
         await self.coordinator.async_refresh()

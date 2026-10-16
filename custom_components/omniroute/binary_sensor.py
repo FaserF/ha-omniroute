@@ -53,6 +53,61 @@ BINARY_SENSORS: tuple[OmniRouteBinarySensorDescription, ...] = (
             "active_cascades_count": len(data.get("active_cascades", [])),
         },
     ),
+    OmniRouteBinarySensorDescription(
+        key="provider_gemini",
+        name="Provider Google Gemini Health",
+        translation_key="provider_gemini",
+        icon="mdi:google",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
+        is_on_fn=lambda data: (
+            data.get("providers", {}).get("google", {}).get("status") != "error"
+        ),
+    ),
+    OmniRouteBinarySensorDescription(
+        key="provider_anthropic",
+        name="Provider Anthropic Claude Health",
+        translation_key="provider_anthropic",
+        icon="mdi:brain",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
+        is_on_fn=lambda data: (
+            data.get("providers", {}).get("anthropic", {}).get("status") != "error"
+        ),
+    ),
+    OmniRouteBinarySensorDescription(
+        key="provider_openai",
+        name="Provider OpenAI Health",
+        translation_key="provider_openai",
+        icon="mdi:creation",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
+        is_on_fn=lambda data: (
+            data.get("providers", {}).get("openai", {}).get("status") != "error"
+        ),
+    ),
+    OmniRouteBinarySensorDescription(
+        key="provider_deepseek",
+        name="Provider DeepSeek Health",
+        translation_key="provider_deepseek",
+        icon="mdi:search-web",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
+        is_on_fn=lambda data: (
+            data.get("providers", {}).get("deepseek", {}).get("status") != "error"
+        ),
+    ),
+    OmniRouteBinarySensorDescription(
+        key="provider_groq",
+        name="Provider Groq Health",
+        translation_key="provider_groq",
+        icon="mdi:lightning-bolt",
+        entity_category=EntityCategory.DIAGNOSTIC,
+        entity_registry_enabled_default=False,
+        is_on_fn=lambda data: (
+            data.get("providers", {}).get("groq", {}).get("status") != "error"
+        ),
+    ),
 )
 
 

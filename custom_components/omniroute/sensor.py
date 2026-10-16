@@ -4,6 +4,7 @@ from __future__ import annotations
 
 from collections.abc import Callable
 from dataclasses import dataclass
+from datetime import UTC, datetime
 from typing import Any
 
 from homeassistant.components.sensor import (
@@ -16,7 +17,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DATA_COORDINATOR, DOMAIN
+from .const import DATA_COORDINATOR, DATA_SUGGESTIONS_SENSOR, DOMAIN
 from .coordinator import OmniRouteDataUpdateCoordinator
 from .helpers import get_device_info
 
@@ -83,6 +84,38 @@ SENSOR_DESCRIPTIONS: tuple[OmniRouteSensorEntityDescription, ...] = (
             "providers": data.get("providers", {}),
         },
     ),
+    OmniRouteSensorEntityDescription(
+        key="daily_tokens",
+        name="Daily Tokens Consumed",
+        translation_key="daily_tokens",
+        icon="mdi:counter",
+        state_class=SensorStateClass.TOTAL_INCREASING,
+        value_fn=lambda data: (
+            data.get("analytics", {}).get("total_tokens")
+            or data.get("quotas", {}).get("total_tokens", 0)
+        ),
+        extra_fn=lambda data: data.get("analytics", {}),
+    ),
+    OmniRouteSensorEntityDescription(
+        key="daily_cost",
+        name="Daily Estimated Cost",
+        translation_key="daily_cost",
+        icon="mdi:currency-usd",
+        native_unit_of_measurement="USD",
+        state_class=SensorStateClass.TOTAL,
+        value_fn=lambda data: round(
+            float(data.get("analytics", {}).get("cost_usd", 0.0)), 4
+        ),
+    ),
+    OmniRouteSensorEntityDescription(
+        key="quota_reset",
+        name="Quota Reset Countdown",
+        translation_key="quota_reset",
+        icon="mdi:clock-fast",
+        value_fn=lambda data: str(
+            data.get("quotas", {}).get("next_reset") or "Optimal"
+        ),
+    ),
 )
 
 
@@ -95,10 +128,13 @@ async def async_setup_entry(
     data = hass.data[DOMAIN][entry.entry_id]
     coordinator: OmniRouteDataUpdateCoordinator = data[DATA_COORDINATOR]
 
-    entities = [
+    entities: list[SensorEntity] = [
         OmniRouteSensor(coordinator, entry, description)
         for description in SENSOR_DESCRIPTIONS
     ]
+    sugg_sensor = OmniRouteAutomationSuggestionsSensor(coordinator, entry)
+    entities.append(sugg_sensor)
+    data[DATA_SUGGESTIONS_SENSOR] = sugg_sensor
     async_add_entities(entities)
 
 
@@ -137,3 +173,61 @@ class OmniRouteSensor(CoordinatorEntity[OmniRouteDataUpdateCoordinator], SensorE
         if not self.coordinator.data or not self.entity_description.extra_fn:
             return None
         return self.entity_description.extra_fn(self.coordinator.data)
+
+
+class OmniRouteAutomationSuggestionsSensor(
+    CoordinatorEntity[OmniRouteDataUpdateCoordinator], SensorEntity
+):
+    """Sensor exposing the latest AI-generated automation suggestions."""
+
+    _attr_has_entity_name = True
+    _attr_name = "AI Automation Suggestions"
+    _attr_icon = "mdi:robot-happy-outline"
+
+    def __init__(
+        self,
+        coordinator: OmniRouteDataUpdateCoordinator,
+        entry: ConfigEntry,
+    ) -> None:
+        """Initialize suggestions sensor."""
+        super().__init__(coordinator)
+        self.entry = entry
+        self._attr_unique_id = f"{entry.entry_id}_automation_suggestions"
+        sw_version = coordinator.data.get("version") if coordinator.data else None
+        self._attr_device_info = get_device_info(entry, sw_version)
+        self._state = "No Suggestions"
+        self._attributes: dict[str, Any] = {
+            "description": None,
+            "yaml_block": None,
+            "last_update": None,
+            "entities_processed_count": 0,
+            "model": None,
+        }
+
+    @property
+    def native_value(self) -> str:
+        """Return state of sensor."""
+        return self._state
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return suggestions attributes."""
+        return self._attributes
+
+    def set_suggestion(
+        self,
+        description: str,
+        yaml_block: str,
+        model: str,
+        entities_processed_count: int,
+    ) -> None:
+        """Update suggestion content and state."""
+        self._state = "Suggestions Available"
+        self._attributes = {
+            "description": description,
+            "yaml_block": yaml_block,
+            "last_update": datetime.now(UTC).isoformat(),
+            "entities_processed_count": entities_processed_count,
+            "model": model,
+        }
+        self.async_write_ha_state()

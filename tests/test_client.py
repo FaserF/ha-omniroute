@@ -158,3 +158,80 @@ async def test_generate_image(mock_session):
     client = OmniRouteClient(mock_session, "http://localhost:20128/v1")
     images = await client.async_generate_image("Modern interior")
     assert images == ["http://img.png"]
+
+
+@pytest.mark.asyncio
+async def test_compression_header(mock_session):
+    """Test token compression header is included when enabled."""
+    client = OmniRouteClient(
+        mock_session, "http://localhost:20128/v1", compression_enabled=True
+    )
+    headers = client._get_headers()
+    assert headers["x-omniroute-compression"] == "true"
+
+    client.compression_enabled = False
+    headers = client._get_headers()
+    assert headers["x-omniroute-compression"] == "false"
+
+
+@pytest.mark.asyncio
+async def test_flush_cache_success(mock_session):
+    """Test cache flush success."""
+    mock_session.post.return_value = create_response_mock(200)
+    client = OmniRouteClient(mock_session, "http://localhost:20128/v1")
+    assert await client.async_flush_cache() is True
+
+
+@pytest.mark.asyncio
+async def test_flush_cache_failure(mock_session):
+    """Test cache flush failure fallback."""
+    mock_session.post.return_value = create_response_mock(500)
+    client = OmniRouteClient(mock_session, "http://localhost:20128/v1")
+    assert await client.async_flush_cache() is False
+
+
+@pytest.mark.asyncio
+async def test_generate_embedding_string(mock_session):
+    """Test embedding generation for single string."""
+    mock_session.post.return_value = create_response_mock(
+        200,
+        json_data={"data": [{"embedding": [0.1, 0.2, 0.3]}]},
+    )
+    client = OmniRouteClient(mock_session, "http://localhost:20128/v1")
+    res = await client.async_generate_embedding("hello")
+    assert res == [0.1, 0.2, 0.3]
+
+
+@pytest.mark.asyncio
+async def test_generate_embedding_list(mock_session):
+    """Test embedding generation for list of strings."""
+    mock_session.post.return_value = create_response_mock(
+        200,
+        json_data={"data": [{"embedding": [0.1, 0.2]}, {"embedding": [0.3, 0.4]}]},
+    )
+    client = OmniRouteClient(mock_session, "http://localhost:20128/v1")
+    res = await client.async_generate_embedding(["hello", "world"])
+    assert res == [[0.1, 0.2], [0.3, 0.4]]
+
+
+@pytest.mark.asyncio
+async def test_analyze_camera_image(mock_session):
+    """Test camera snapshot multimodal analysis."""
+    mock_session.post.return_value = create_response_mock(
+        200,
+        json_data={
+            "choices": [
+                {"message": {"content": "A package was left on the front porch."}}
+            ],
+            "usage": {"prompt_tokens": 100, "completion_tokens": 15},
+        },
+    )
+    client = OmniRouteClient(mock_session, "http://localhost:20128/v1")
+    result = await client.async_analyze_camera_image(
+        image_bytes=b"FAKE_JPEG_BYTES",
+        prompt="Describe the front door",
+        model="coding-cascade",
+    )
+    assert result["response"] == "A package was left on the front porch."
+    assert result["model"] == "coding-cascade"
+    assert result["usage"]["completion_tokens"] == 15

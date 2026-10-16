@@ -81,6 +81,20 @@ DEFAULT_AI_TASK_PROMPT: Final = (
     "Execute reasoning, process context and multimodal inputs, and return structured outputs."
 )
 
+CONF_TOKEN_COMPRESSION: Final = "token_compression"
+DEFAULT_TOKEN_COMPRESSION: Final = True
+
+DEFAULT_TTS_VOICES: Final[list[str]] = [
+    "Charon",
+    "Puck",
+    "Aoede",
+    "Kore",
+    "Fenrir",
+    "Leda",
+    "Orus",
+    "Zephyr",
+]
+
 # Supported platforms
 PLATFORM_AI_TASK: Final = "ai_task"
 PLATFORMS: Final[list[Platform | str]] = [
@@ -90,6 +104,9 @@ PLATFORMS: Final[list[Platform | str]] = [
     Platform.BUTTON,
     Platform.TTS,
     Platform.STT,
+    Platform.SELECT,
+    Platform.SWITCH,
+    Platform.IMAGE,
     PLATFORM_AI_TASK,
 ]
 
@@ -100,6 +117,12 @@ SUPPORTED_TTS_FORMATS: Final[list[str]] = ["mp3", "opus", "aac", "flac", "wav"]
 SERVICE_EXECUTE_AI_TASK: Final = "execute_ai_task"
 SERVICE_GENERATE_IMAGE: Final = "generate_image"
 SERVICE_REFRESH_MODELS: Final = "refresh_models"
+SERVICE_ANALYZE_CAMERA: Final = "analyze_camera"
+SERVICE_GENERATE_EMBEDDING: Final = "generate_embedding"
+SERVICE_FLUSH_CACHE: Final = "flush_cache"
+SERVICE_SUGGEST_AUTOMATIONS: Final = "suggest_automations"
+DATA_SUGGESTIONS_SENSOR: Final = "suggestions_sensor"
+
 
 # Max tool calling iterations in conversation agent
 MAX_TOOL_ITERATIONS: Final = 10

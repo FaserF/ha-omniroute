@@ -10,7 +10,9 @@ requires-python = ">=3.12"
 
 [project.optional-dependencies]
 test = [
+    "ha-ffmpeg",
     "mutagen",
+    "pillow",
     "pytest",
     "pytest-asyncio",
     "pytest-homeassistant-custom-component",

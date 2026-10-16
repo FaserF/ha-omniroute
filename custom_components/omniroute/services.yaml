@@ -93,3 +93,90 @@ generate_image:
 
 refresh_models:
   description: Force an immediate refresh of available models and cascade status from the gateway.
+
+analyze_camera:
+  description: Capture a snapshot from a Home Assistant camera and analyze it using OmniRoute multimodal vision models.
+  fields:
+    camera_entity_id:
+      description: The camera entity to snapshot.
+      example: "camera.front_door"
+      required: true
+      selector:
+        entity:
+          domain: camera
+    prompt:
+      description: What to look for or analyze in the snapshot.
+      example: "Describe what you see in this security camera snapshot in detail."
+      default: "Describe what you see in this security camera snapshot in detail."
+      required: false
+      selector:
+        text:
+          multiline: true
+    model:
+      description: Vision model or cascade to use for analysis.
+      example: "coding-cascade"
+      required: false
+      selector:
+        text: {}
+
+generate_embedding:
+  description: Generate vector embeddings for text via OmniRoute /v1/embeddings endpoint.
+  fields:
+    text:
+      description: Text string to vectorize.
+      example: "Living room ceiling light automation"
+      required: true
+      selector:
+        text:
+          multiline: true
+    model:
+      description: Embedding model to use.
+      example: "text-embedding-3-small"
+      default: "text-embedding-3-small"
+      required: false
+      selector:
+        text: {}
+
+flush_cache:
+  description: Flush route and model resolution caches in the OmniRoute gateway.
+
+suggest_automations:
+  description: Scan Home Assistant entities and generate smart, tailored automation suggestions with valid YAML code via OmniRoute.
+  fields:
+    domains:
+      description: Limit entity analysis to specific domains (e.g. light, switch, climate).
+      example: ["light", "climate"]
+      required: false
+      selector:
+        object: {}
+    entity_limit:
+      description: Maximum number of entities to feed into the prompt context.
+      example: 25
+      default: 30
+      required: false
+      selector:
+        number:
+          min: 5
+          max: 100
+          mode: box
+    custom_prompt:
+      description: Specific focus or custom instructions for the automation (e.g. "Focus on presence-based lighting").
+      example: "Focus on energy saving when leaving home"
+      required: false
+      selector:
+        text:
+          multiline: true
+    model:
+      description: Model or cascade to generate automation code.
+      example: "coding-cascade"
+      default: "coding-cascade"
+      required: false
+      selector:
+        text: {}
+    send_notification:
+      description: Whether to deliver suggestions via persistent notification in Home Assistant.
+      default: true
+      required: false
+      selector:
+        boolean: {}
+
