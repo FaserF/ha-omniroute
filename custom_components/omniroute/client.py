@@ -80,8 +80,9 @@ class OmniRouteClient:
         }
         if self._api_key:
             headers["Authorization"] = f"Bearer {self._api_key}"
-        if self._compression_enabled:
-            headers["x-omniroute-compression"] = "true"
+        headers["x-omniroute-compression"] = (
+            "true" if self._compression_enabled else "false"
+        )
         return headers
 
     async def async_get_models(self) -> list[str]:

@@ -556,6 +556,7 @@ def hass() -> MagicMock:
     mock.services = MagicMock()
     mock.services.has_service = MagicMock(return_value=False)
     mock.services.async_register = MagicMock()
+    mock.services.async_call = AsyncMock()
     mock.config_entries = MagicMock()
     mock.config_entries.async_entries = MagicMock(return_value=[])
     mock.config_entries.async_forward_entry_setups = AsyncMock(return_value=True)
