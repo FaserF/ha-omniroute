@@ -70,6 +70,16 @@ class OmniRouteAITaskEntity(CoordinatorEntity[OmniRouteDataUpdateCoordinator], E
         self._last_model_used: str | None = None
         self._last_task_timestamp: str | None = None
         self._state = "ready"
+        try:
+            from homeassistant.components.ai_task import AITaskEntityFeature
+
+            self._attr_supported_features = (
+                AITaskEntityFeature.GENERATE_DATA
+                | AITaskEntityFeature.GENERATE_IMAGE
+                | AITaskEntityFeature.SUPPORT_ATTACHMENTS
+            )
+        except (ImportError, AttributeError):
+            self._attr_supported_features = 7
 
     @property
     def state(self) -> str:
@@ -206,3 +216,75 @@ class OmniRouteAITaskEntity(CoordinatorEntity[OmniRouteDataUpdateCoordinator], E
         if choices and "message" in choices[0]:
             return str(choices[0]["message"].get("content", ""))
         return ""
+
+    async def _async_generate_data(self, task: Any, chat_log: Any) -> Any:
+        """Handle Home Assistant data generation task (e.g. suggest automation names)."""
+        instructions = (
+            getattr(task, "instructions", "")
+            or "You are an intelligent home assistant. Provide clear, concise answers."
+        )
+        messages: list[dict[str, Any]] = [{"role": "system", "content": instructions}]
+
+        if hasattr(chat_log, "content") and chat_log.content:
+            for item in chat_log.content:
+                r = getattr(item, "role", "user")
+                c = getattr(item, "content", "")
+                if c:
+                    messages.append({"role": r, "content": str(c)})
+        elif hasattr(chat_log, "messages") and chat_log.messages:
+            for m in chat_log.messages:
+                if isinstance(m, dict):
+                    messages.append(m)
+
+        if len(messages) == 1:
+            messages.append({"role": "user", "content": instructions})
+
+        options = self.entry.options
+        chosen_model = options.get(CONF_AI_TASK_MODEL, DEFAULT_AI_TASK_MODEL)
+        chosen_temp = options.get(CONF_AI_TASK_TEMPERATURE, DEFAULT_AI_TASK_TEMPERATURE)
+        chosen_max_tokens = options.get(
+            CONF_AI_TASK_MAX_TOKENS, DEFAULT_AI_TASK_MAX_TOKENS
+        )
+
+        resp = await self.client.async_chat_completion(
+            messages=messages,
+            model=chosen_model,
+            temperature=chosen_temp,
+            max_tokens=chosen_max_tokens,
+        )
+
+        choices = resp.get("choices", [])
+        content = ""
+        if choices and "message" in choices[0]:
+            content = str(choices[0]["message"].get("content", ""))
+
+        data_result: Any = content
+        if getattr(task, "structure", None):
+            import json
+
+            try:
+                data_result = json.loads(content)
+            except Exception:
+                data_result = content
+
+        cid = (
+            getattr(chat_log, "conversation_id", None) or f"{self.entry.entry_id}_task"
+        )
+        try:
+            from homeassistant.components.ai_task import GenDataTaskResult
+
+            return GenDataTaskResult(conversation_id=cid, data=data_result)
+        except ImportError:
+            return {"conversation_id": cid, "data": data_result}
+
+    async def _async_generate_image(self, task: Any) -> Any:
+        """Handle Home Assistant image generation task."""
+        prompt = getattr(task, "prompt", "") or str(task)
+        images = await self.async_generate_image(prompt=prompt)
+        url = images[0] if images else ""
+        try:
+            from homeassistant.components.ai_task import GenImageTaskResult
+
+            return GenImageTaskResult(image_url=url, b64_json=None)
+        except ImportError:
+            return {"image_url": url, "b64_json": None}
