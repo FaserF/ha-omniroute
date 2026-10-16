@@ -163,9 +163,8 @@ async def test_generate_image(mock_session):
 @pytest.mark.asyncio
 async def test_compression_header(mock_session):
     """Test token compression header is included when enabled."""
-    client = OmniRouteClient(
-        mock_session, "http://localhost:20128/v1", compression_enabled=True
-    )
+    client = OmniRouteClient(mock_session, "http://localhost:20128/v1")
+    client.compression_enabled = True
     headers = client._get_headers()
     assert headers["x-omniroute-compression"] == "true"
 

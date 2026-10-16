@@ -256,6 +256,7 @@ mock_submodule("homeassistant.components.button")
 mock_submodule("homeassistant.components.select")
 mock_submodule("homeassistant.components.switch")
 mock_submodule("homeassistant.components.image")
+mock_submodule("homeassistant.components.camera")
 mock_submodule("homeassistant.components.diagnostics")
 mock_submodule("homeassistant.components.conversation")
 mock_submodule("homeassistant.helpers.device_registry")
@@ -560,6 +561,17 @@ def hass() -> MagicMock:
     mock.config_entries.async_forward_entry_setups = AsyncMock(return_value=True)
     mock.config_entries.async_unload_platforms = AsyncMock(return_value=True)
     mock.config_entries.async_reload = AsyncMock(return_value=True)
+
+    def mock_update_entry(
+        entry: Any, *, options: Any = None, data: Any = None, **kwargs: Any
+    ) -> bool:
+        if options is not None:
+            entry.options = dict(options)
+        if data is not None:
+            entry.data = dict(data)
+        return True
+
+    mock.config_entries.async_update_entry = MagicMock(side_effect=mock_update_entry)
     return mock
 
 
@@ -584,6 +596,8 @@ def mock_config_entry() -> MagicMock:
         "ai_task_prompt": "You are an AI task specialist.",
         "ai_task_temperature": 0.2,
         "ai_task_max_tokens": 2048,
+        "token_compression": True,
+        "tts_voice": "Puck",
     }
     entry.async_on_unload = MagicMock()
     entry.add_update_listener = MagicMock()

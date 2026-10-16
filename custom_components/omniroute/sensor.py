@@ -91,7 +91,8 @@ SENSOR_DESCRIPTIONS: tuple[OmniRouteSensorEntityDescription, ...] = (
         icon="mdi:counter",
         state_class=SensorStateClass.TOTAL_INCREASING,
         value_fn=lambda data: (
-            data.get("analytics", {}).get("total_tokens")
+            data.get("daily_tokens")
+            or data.get("analytics", {}).get("total_tokens")
             or data.get("quotas", {}).get("total_tokens", 0)
         ),
         extra_fn=lambda data: data.get("analytics", {}),
@@ -104,7 +105,10 @@ SENSOR_DESCRIPTIONS: tuple[OmniRouteSensorEntityDescription, ...] = (
         native_unit_of_measurement="USD",
         state_class=SensorStateClass.TOTAL,
         value_fn=lambda data: round(
-            float(data.get("analytics", {}).get("cost_usd", 0.0)), 4
+            float(
+                data.get("daily_cost") or data.get("analytics", {}).get("cost_usd", 0.0)
+            ),
+            4,
         ),
     ),
     OmniRouteSensorEntityDescription(
@@ -113,7 +117,9 @@ SENSOR_DESCRIPTIONS: tuple[OmniRouteSensorEntityDescription, ...] = (
         translation_key="quota_reset",
         icon="mdi:clock-fast",
         value_fn=lambda data: str(
-            data.get("quotas", {}).get("next_reset") or "Optimal"
+            data.get("quota_reset")
+            or data.get("quotas", {}).get("next_reset")
+            or "Optimal"
         ),
     ),
 )
