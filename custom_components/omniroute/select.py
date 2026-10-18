@@ -62,18 +62,21 @@ class OmniRouteActiveCascadeSelect(
 
     @property
     def options(self) -> list[str]:
-        """Return available cascade / model options."""
-        models: list[str] = []
+        """Return available cascade / model options dynamically."""
         if self.coordinator.data:
+            cascades = self.coordinator.data.get("active_cascades", [])
+            if cascades:
+                return sorted(cascades)
             models = self.coordinator.data.get("models", [])
-        cascades = [c for c in DEFAULT_CASCADES if c in models] or DEFAULT_CASCADES
-        return cascades
+            if models:
+                return sorted(models)
+        return ["default"]
 
     @property
     def current_option(self) -> str | None:
         """Return currently selected active cascade."""
-        current = self.entry.options.get(CONF_CHAT_MODEL, DEFAULT_CHAT_MODEL)
-        if current in self.options:
+        current = self.entry.options.get(CONF_CHAT_MODEL)
+        if current and current in self.options:
             return current
         return self.options[0] if self.options else None
 

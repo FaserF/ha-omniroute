@@ -120,7 +120,7 @@ class OmniRouteOptionsFlow(config_entries.OptionsFlow):
             return self.async_create_entry(title="", data=user_input)
 
         # Retrieve available models from coordinator if setup
-        models = list(DEFAULT_CASCADES)
+        models: list[str] = []
         if (
             DOMAIN in self.hass.data
             and self.config_entry.entry_id in self.hass.data[DOMAIN]
@@ -129,16 +129,19 @@ class OmniRouteOptionsFlow(config_entries.OptionsFlow):
                 "coordinator"
             )
             if coordinator and getattr(coordinator, "models", None):
-                models = list(set(models + coordinator.models))
-                models.sort()
+                models = sorted(list(set(coordinator.models)))
+        if not models:
+            models = ["default"]
 
         current_options = self.config_entry.options
+        default_chat = current_options.get(CONF_CHAT_MODEL) or models[0]
+        default_ai_task = current_options.get(CONF_AI_TASK_MODEL) or models[0]
 
         schema = vol.Schema(
             {
                 vol.Optional(
                     CONF_CHAT_MODEL,
-                    default=current_options.get(CONF_CHAT_MODEL, DEFAULT_CHAT_MODEL),
+                    default=default_chat,
                 ): selector.SelectSelector(
                     selector.SelectSelectorConfig(
                         options=models,
@@ -185,9 +188,7 @@ class OmniRouteOptionsFlow(config_entries.OptionsFlow):
                 ),
                 vol.Optional(
                     CONF_AI_TASK_MODEL,
-                    default=current_options.get(
-                        CONF_AI_TASK_MODEL, DEFAULT_AI_TASK_MODEL
-                    ),
+                    default=default_ai_task,
                 ): selector.SelectSelector(
                     selector.SelectSelectorConfig(
                         options=models,

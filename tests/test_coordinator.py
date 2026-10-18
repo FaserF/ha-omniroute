@@ -21,6 +21,9 @@ async def test_coordinator_update_success(hass):
     mock_client.async_get_models = AsyncMock(
         return_value=["chat-cascade", "coding-cascade", "gpt-4o"]
     )
+    mock_client.async_get_cascades = AsyncMock(
+        return_value=["chat-cascade", "coding-cascade", "custom-cascade"]
+    )
     mock_client.async_get_quotas = AsyncMock(
         return_value={
             "quotas": {"github": 100},
@@ -34,10 +37,10 @@ async def test_coordinator_update_success(hass):
     assert coordinator.data["reachable"] is True
     assert coordinator.data["status"] == "ok"
     assert coordinator.data["latency_ms"] == 12.5
-    assert coordinator.data["models_count"] == 3
+    assert coordinator.data["models_count"] == 4
     assert "chat-cascade" in coordinator.data["active_cascades"]
     assert coordinator.data["cascade_status"]["coding-cascade"] is True
-    assert coordinator.data["cascade_status"]["fast-cascade"] is False
+    assert coordinator.data["cascade_status"]["custom-cascade"] is True
 
 
 @pytest.mark.asyncio

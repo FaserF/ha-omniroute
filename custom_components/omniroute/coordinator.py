@@ -43,9 +43,23 @@ class OmniRouteDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     raise
             quotas = await self.client.async_get_quotas()
 
-            # Check cascade availability
-            active_cascades = [c for c in DEFAULT_CASCADES if c in models]
-            cascade_status = {c: (c in models) for c in DEFAULT_CASCADES}
+            # Check cascade availability dynamically from server
+            server_cascades: list[str] = []
+            if hasattr(self.client, "async_get_cascades"):
+                try:
+                    fetched = await self.client.async_get_cascades()
+                    if fetched:
+                        server_cascades = fetched
+                except Exception as exc:
+                    LOGGER.debug("Could not fetch cascades dynamically: %s", exc)
+
+            for c in server_cascades:
+                if c not in models:
+                    models.append(c)
+            self.models = models
+
+            active_cascades = server_cascades if server_cascades else [m for m in models if "cascade" in m]
+            cascade_status = {c: True for c in (server_cascades or active_cascades)}
 
             return {
                 "reachable": health.get("reachable", False),

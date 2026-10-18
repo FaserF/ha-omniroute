@@ -18,11 +18,8 @@ DEFAULT_MODEL: Final = "AI Gateway & Router"
 DATA_COORDINATOR: Final = "coordinator"
 DATA_CLIENT: Final = "client"
 
-# Cascade definitions
-CASCADE_CHAT: Final = "chat-cascade"
-CASCADE_CODING: Final = "coding-cascade"
-CASCADE_FAST: Final = "fast-cascade"
-DEFAULT_CASCADES: Final[list[str]] = [CASCADE_CHAT, CASCADE_CODING, CASCADE_FAST]
+# Cascade definitions (dynamically populated from server combos)
+DEFAULT_CASCADES: Final[list[str]] = []
 
 # Configuration keys
 CONF_API_URL: Final = "api_url"
@@ -54,9 +51,9 @@ CONF_STT_LANGUAGE: Final = "stt_language"
 CONF_STT_FORMAT: Final = "stt_format"
 
 # Default values
-DEFAULT_CHAT_MODEL: Final = "chat-cascade"
-DEFAULT_AI_TASK_MODEL: Final = "coding-cascade"
-DEFAULT_FAST_MODEL: Final = "fast-cascade"
+DEFAULT_CHAT_MODEL: Final = "default"
+DEFAULT_AI_TASK_MODEL: Final = "default"
+DEFAULT_FAST_MODEL: Final = "default"
 DEFAULT_TTS_MODEL: Final = "tts-latest"
 DEFAULT_TTS_VOICE: Final = "Puck"
 DEFAULT_TTS_SPEED: Final = 1.0

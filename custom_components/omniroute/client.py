@@ -9,7 +9,7 @@ from typing import Any
 import aiohttp
 from homeassistant.exceptions import HomeAssistantError
 
-from .const import LOGGER
+from .const import DEFAULT_CASCADES, LOGGER
 
 
 class OmniRouteError(HomeAssistantError):
@@ -84,6 +84,34 @@ class OmniRouteClient:
             "true" if self._compression_enabled else "false"
         )
         return headers
+
+    async def async_get_cascades(self) -> list[str]:
+        """Fetch active cascades dynamically from OmniRoute /api/combos."""
+        url = f"{self._root_url}/api/combos"
+        headers = self._get_headers()
+
+        try:
+            async with asyncio.timeout(self._timeout):
+                async with self._session.get(url, headers=headers) as resp:
+                    if resp.status == 200:
+                        data = await resp.json()
+                        combos = (
+                            data.get("combos", [])
+                            if isinstance(data, dict)
+                            else (data if isinstance(data, list) else [])
+                        )
+                        names = [
+                            c["name"]
+                            for c in combos
+                            if isinstance(c, dict)
+                            and "name" in c
+                            and not c.get("isHidden", False)
+                        ]
+                        if names:
+                            return names
+        except Exception as exc:
+            LOGGER.debug("Could not fetch combos from /api/combos: %s", exc)
+        return list(DEFAULT_CASCADES)
 
     async def async_get_models(self) -> list[str]:
         """Fetch available models from OmniRoute."""
