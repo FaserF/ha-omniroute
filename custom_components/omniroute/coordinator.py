@@ -9,21 +9,29 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .client import CannotConnect, InvalidAuth, OmniRouteClient, OmniRouteError
-from .const import DEFAULT_CASCADES, DOMAIN, LOGGER
+from .const import DEFAULT_CASCADES, DEFAULT_SCAN_INTERVAL, DOMAIN, LOGGER
 
-UPDATE_INTERVAL = timedelta(seconds=60)
+UPDATE_INTERVAL = timedelta(seconds=DEFAULT_SCAN_INTERVAL)
 
 
 class OmniRouteDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
     """Class to manage fetching OmniRoute data."""
 
-    def __init__(self, hass: HomeAssistant, client: OmniRouteClient) -> None:
+    def __init__(
+        self,
+        hass: HomeAssistant,
+        client: OmniRouteClient,
+        update_interval: timedelta | None = None,
+    ) -> None:
         """Initialize the coordinator."""
+        if update_interval is None:
+            update_interval = UPDATE_INTERVAL
+
         super().__init__(
             hass,
             LOGGER,
             name=DOMAIN,
-            update_interval=UPDATE_INTERVAL,
+            update_interval=update_interval,
         )
         self.client = client
         self.models: list[str] = []

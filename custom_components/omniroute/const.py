@@ -38,6 +38,10 @@ CONF_AI_TASK_MODEL: Final = "ai_task_model"
 CONF_AI_TASK_PROMPT: Final = "ai_task_prompt"
 CONF_AI_TASK_TEMPERATURE: Final = "ai_task_temperature"
 CONF_AI_TASK_MAX_TOKENS: Final = "ai_task_max_tokens"
+CONF_SCAN_INTERVAL: Final = "scan_interval"
+
+# Default values
+DEFAULT_SCAN_INTERVAL: Final = 180  # seconds (3 minutes)
 
 # TTS options
 CONF_TTS_MODEL: Final = "tts_model"

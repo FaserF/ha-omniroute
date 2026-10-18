@@ -21,6 +21,7 @@ from .const import (
     CONF_CHAT_MODEL,
     CONF_MAX_TOKENS,
     CONF_PROMPT,
+    CONF_SCAN_INTERVAL,
     CONF_TEMPERATURE,
     CONF_TOP_P,
     DEFAULT_AI_TASK_MAX_TOKENS,
@@ -33,6 +34,7 @@ from .const import (
     DEFAULT_MAX_TOKENS,
     DEFAULT_NAME,
     DEFAULT_PROMPT,
+    DEFAULT_SCAN_INTERVAL,
     DEFAULT_TEMPERATURE,
     DEFAULT_TOP_P,
     DOMAIN,
@@ -226,6 +228,20 @@ class OmniRouteOptionsFlow(config_entries.OptionsFlow):
                         max=16384,
                         step=1,
                         mode=selector.NumberSelectorMode.BOX,
+                    )
+                ),
+                vol.Optional(
+                    CONF_SCAN_INTERVAL,
+                    default=current_options.get(
+                        CONF_SCAN_INTERVAL, DEFAULT_SCAN_INTERVAL
+                    ),
+                ): selector.NumberSelector(
+                    selector.NumberSelectorConfig(
+                        min=15,
+                        max=3600,
+                        step=5,
+                        mode=selector.NumberSelectorMode.BOX,
+                        unit_of_measurement="s",
                     )
                 ),
             }
