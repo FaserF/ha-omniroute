@@ -36,7 +36,7 @@ class OmniRouteClient:
         session: aiohttp.ClientSession,
         api_url: str,
         api_key: str | None = None,
-        timeout: float = 60.0,
+        timeout: float = 300.0,
     ) -> None:
         """Initialize the client."""
         self._session = session
