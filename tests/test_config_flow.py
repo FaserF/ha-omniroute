@@ -32,7 +32,7 @@ async def test_flow_user_init(hass):
 
 
 @pytest.mark.asyncio
-async def test_flow_user_success(hass):
+async def test_flow_user_success(hass, expected_lingering_timers):
     """Test successful user configuration."""
     flow = OmniRouteConfigFlow()
     flow.hass = hass
