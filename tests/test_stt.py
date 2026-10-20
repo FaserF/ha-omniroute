@@ -98,7 +98,11 @@ async def test_stt_process_audio_stream_success(mock_config_entry):
     assert result.text == "Turn on the living room light"
     assert result.result == SpeechResultState.SUCCESS
     assert mock_client.async_speech_to_text.called
-    sent_audio = mock_client.async_speech_to_text.call_args[0][0]
+    sent_audio = (
+        mock_client.async_speech_to_text.call_args.kwargs["audio_data"]
+        if mock_client.async_speech_to_text.call_args.kwargs
+        else mock_client.async_speech_to_text.call_args[0][0]
+    )
     assert sent_audio.startswith(b"RIFF")
 
 
@@ -129,7 +133,12 @@ async def test_stt_process_audio_stream_already_riff(mock_config_entry):
     result = await entity.async_process_audio_stream(metadata, sample_stream())
     assert result.text == "Hello world"
     assert result.result == SpeechResultState.SUCCESS
-    assert mock_client.async_speech_to_text.call_args[0][0] == riff_data
+    sent_audio = (
+        mock_client.async_speech_to_text.call_args.kwargs["audio_data"]
+        if mock_client.async_speech_to_text.call_args.kwargs
+        else mock_client.async_speech_to_text.call_args[0][0]
+    )
+    assert sent_audio == riff_data
 
 
 @pytest.mark.asyncio
