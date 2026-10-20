@@ -180,9 +180,13 @@ class OmniRouteConversationEntity(
             # Handle tool calls
             messages.append(msg)
             for call in tool_calls:
-                call_id = call.get("id", "")
-                fn_name = call.get("function", {}).get("name", "")
-                fn_args_raw = call.get("function", {}).get("arguments", "{}")
+                call_id = str(call.get("id", ""))
+                func_obj = call.get("function")
+                func_dict: dict[str, Any] = (
+                    func_obj if isinstance(func_obj, dict) else {}
+                )
+                fn_name = str(func_dict.get("name", ""))
+                fn_args_raw = str(func_dict.get("arguments", "{}"))
                 try:
                     fn_args = json.loads(fn_args_raw)
                 except Exception:
@@ -302,7 +306,7 @@ class OmniRouteConversationEntity(
                 yield f"Error communicating with OmniRoute: {err}"
                 return
 
-            tool_calls = []
+            tool_calls: list[dict[str, Any]] = []
             msg_content = ""
 
             async for chunk in stream:
@@ -354,9 +358,13 @@ class OmniRouteConversationEntity(
             )
 
             for call in tool_calls:
-                call_id = call.get("id", "")
-                fn_name = call.get("function", {}).get("name", "")
-                fn_args_raw = call.get("function", {}).get("arguments", "{}")
+                call_id = str(call.get("id", ""))
+                func_obj = call.get("function")
+                func_dict: dict[str, Any] = (
+                    func_obj if isinstance(func_obj, dict) else {}
+                )
+                fn_name = str(func_dict.get("name", ""))
+                fn_args_raw = str(func_dict.get("arguments", "{}"))
                 try:
                     fn_args = json.loads(fn_args_raw)
                 except Exception:

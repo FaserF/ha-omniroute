@@ -597,18 +597,18 @@ class OmniRouteClient:
                         f"HTTP {resp.status} during chat completion stream: {await resp.text()}"
                     )
 
-                async for line in resp.content:
-                    if not line:
+                async for raw_line in resp.content:
+                    if not raw_line:
                         continue
-                    line = line.decode("utf-8").strip()
-                    if line.startswith("data: "):
-                        data_str = line[6:]
+                    line_str = raw_line.decode("utf-8").strip()
+                    if line_str.startswith("data: "):
+                        data_str = line_str[6:]
                         if data_str == "[DONE]":
                             break
                         try:
                             yield json.loads(data_str)
                         except json.JSONDecodeError:
-                            LOGGER.debug("Could not decode stream line: %s", line)
+                            LOGGER.debug("Could not decode stream line: %s", line_str)
         except (TimeoutError, aiohttp.ClientError) as err:
             raise CannotConnect(
                 f"Connection error during chat completion stream: {err}"
