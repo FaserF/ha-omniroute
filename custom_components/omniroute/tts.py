@@ -114,7 +114,6 @@ class OmniRouteTTSEntity(
             LOGGER.error("OmniRoute TTS synthesis failed: %s", err)
             return None, None
 
-
     async def async_get_tts_audio_stream(
         self, message: str, language: str, options: dict[str, Any] | None = None
     ) -> AsyncIterable[bytes]:

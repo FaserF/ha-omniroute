@@ -550,7 +550,6 @@ class OmniRouteClient:
             "usage": resp.get("usage", {}),
         }
 
-
     async def async_chat_completion_stream(
         self,
         messages: list[dict[str, Any]],
@@ -563,6 +562,7 @@ class OmniRouteClient:
     ) -> AsyncIterable[dict[str, Any]]:
         """Send chat completion request with streaming."""
         import json
+
         url = f"{self._v1_url}/chat/completions"
         headers = self._get_headers()
         headers["Content-Type"] = "application/json"
@@ -582,13 +582,20 @@ class OmniRouteClient:
             payload["tool_choice"] = tool_choice
 
         try:
-            async with self._session.post(url, headers=headers, json=payload, timeout=aiohttp.ClientTimeout(total=self._timeout)) as resp:
+            async with self._session.post(
+                url,
+                headers=headers,
+                json=payload,
+                timeout=aiohttp.ClientTimeout(total=self._timeout),
+            ) as resp:
                 if resp.status == 401:
                     raise InvalidAuth("Invalid authentication token")
                 if resp.status == 404:
                     raise ModelNotFoundError(f"Model '{model}' not found")
                 if resp.status != 200:
-                    raise OmniRouteError(f"HTTP {resp.status} during chat completion stream: {await resp.text()}")
+                    raise OmniRouteError(
+                        f"HTTP {resp.status} during chat completion stream: {await resp.text()}"
+                    )
 
                 async for line in resp.content:
                     if not line:
@@ -603,12 +610,15 @@ class OmniRouteClient:
                         except json.JSONDecodeError:
                             LOGGER.debug("Could not decode stream line: %s", line)
         except (TimeoutError, aiohttp.ClientError) as err:
-            raise CannotConnect(f"Connection error during chat completion stream: {err}") from err
+            raise CannotConnect(
+                f"Connection error during chat completion stream: {err}"
+            ) from err
         except (InvalidAuth, ModelNotFoundError, OmniRouteError):
             raise
         except Exception as err:
-            raise OmniRouteError(f"Unexpected error during chat completion stream: {err}") from err
-
+            raise OmniRouteError(
+                f"Unexpected error during chat completion stream: {err}"
+            ) from err
 
     async def async_text_to_speech_stream(
         self,
@@ -632,11 +642,18 @@ class OmniRouteClient:
         }
 
         try:
-            async with self._session.post(url, headers=headers, json=payload, timeout=aiohttp.ClientTimeout(total=self._timeout)) as resp:
+            async with self._session.post(
+                url,
+                headers=headers,
+                json=payload,
+                timeout=aiohttp.ClientTimeout(total=self._timeout),
+            ) as resp:
                 if resp.status == 401:
                     raise InvalidAuth("Invalid authentication token")
                 if resp.status != 200:
-                    raise OmniRouteError(f"HTTP {resp.status} during TTS synthesis stream: {await resp.text()}")
+                    raise OmniRouteError(
+                        f"HTTP {resp.status} during TTS synthesis stream: {await resp.text()}"
+                    )
 
                 async for chunk in resp.content.iter_chunked(1024):
                     yield chunk

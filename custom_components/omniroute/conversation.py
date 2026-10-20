@@ -223,7 +223,9 @@ class OmniRouteConversationEntity(
             conversation_id=conversation_id,
         )
 
-    async def async_stream_conversation(self, user_input: ConversationInput) -> AsyncIterable[str]:
+    async def async_stream_conversation(
+        self, user_input: ConversationInput
+    ) -> AsyncIterable[str]:
         """Process a conversational input sentence and stream the response."""
         options = self.entry.options
         chat_model = options.get(CONF_CHAT_MODEL, DEFAULT_FAST_MODEL)
@@ -316,14 +318,30 @@ class OmniRouteConversationEntity(
                     for t_call in delta["tool_calls"]:
                         idx = t_call.get("index", 0)
                         while len(tool_calls) <= idx:
-                            tool_calls.append({"id": "", "type": "function", "function": {"name": "", "arguments": ""}})
+                            tool_calls.append(
+                                {
+                                    "id": "",
+                                    "type": "function",
+                                    "function": {"name": "", "arguments": ""},
+                                }
+                            )
                         if "id" in t_call and t_call["id"]:
                             tool_calls[idx]["id"] = t_call["id"]
                         if "function" in t_call:
-                            if "name" in t_call["function"] and t_call["function"]["name"]:
-                                tool_calls[idx]["function"]["name"] += t_call["function"]["name"]
-                            if "arguments" in t_call["function"] and t_call["function"]["arguments"]:
-                                tool_calls[idx]["function"]["arguments"] += t_call["function"]["arguments"]
+                            if (
+                                "name" in t_call["function"]
+                                and t_call["function"]["name"]
+                            ):
+                                tool_calls[idx]["function"]["name"] += t_call[
+                                    "function"
+                                ]["name"]
+                            if (
+                                "arguments" in t_call["function"]
+                                and t_call["function"]["arguments"]
+                            ):
+                                tool_calls[idx]["function"]["arguments"] += t_call[
+                                    "function"
+                                ]["arguments"]
 
             if not tool_calls or not llm_api:
                 if msg_content:
@@ -331,11 +349,9 @@ class OmniRouteConversationEntity(
                 messages.append({"role": "assistant", "content": final_text})
                 break
 
-            messages.append({
-                "role": "assistant",
-                "content": msg_content,
-                "tool_calls": tool_calls
-            })
+            messages.append(
+                {"role": "assistant", "content": msg_content, "tool_calls": tool_calls}
+            )
 
             for call in tool_calls:
                 call_id = call.get("id", "")

@@ -9,7 +9,7 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 
 from .client import CannotConnect, InvalidAuth, OmniRouteClient, OmniRouteError
-from .const import DEFAULT_CASCADES, DEFAULT_SCAN_INTERVAL, DOMAIN, LOGGER
+from .const import DEFAULT_SCAN_INTERVAL, DOMAIN, LOGGER
 
 UPDATE_INTERVAL = timedelta(seconds=DEFAULT_SCAN_INTERVAL)
 
@@ -66,8 +66,12 @@ class OmniRouteDataUpdateCoordinator(DataUpdateCoordinator[dict[str, Any]]):
                     models.append(c)
             self.models = models
 
-            active_cascades = server_cascades if server_cascades else [m for m in models if "cascade" in m]
-            cascade_status = {c: True for c in (server_cascades or active_cascades)}
+            active_cascades = (
+                server_cascades
+                if server_cascades
+                else [m for m in models if "cascade" in m]
+            )
+            cascade_status = dict.fromkeys(server_cascades or active_cascades, True)
 
             return {
                 "reachable": health.get("reachable", False),

@@ -25,12 +25,9 @@ from .const import (
     CONF_TEMPERATURE,
     CONF_TOP_P,
     DEFAULT_AI_TASK_MAX_TOKENS,
-    DEFAULT_AI_TASK_MODEL,
     DEFAULT_AI_TASK_PROMPT,
     DEFAULT_AI_TASK_TEMPERATURE,
     DEFAULT_API_URL,
-    DEFAULT_CASCADES,
-    DEFAULT_CHAT_MODEL,
     DEFAULT_MAX_TOKENS,
     DEFAULT_NAME,
     DEFAULT_PROMPT,
@@ -131,7 +128,7 @@ class OmniRouteOptionsFlow(config_entries.OptionsFlow):
                 "coordinator"
             )
             if coordinator and getattr(coordinator, "models", None):
-                models = sorted(list(set(coordinator.models)))
+                models = sorted(set(coordinator.models))
         if not models:
             models = ["default"]
 
