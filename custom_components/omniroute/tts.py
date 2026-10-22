@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+from collections.abc import AsyncIterable
 from typing import Any
 
 from homeassistant.components.tts import (
@@ -112,3 +113,35 @@ class OmniRouteTTSEntity(
         except Exception as err:
             LOGGER.error("OmniRoute TTS synthesis failed: %s", err)
             return None, None
+
+
+    async def async_get_tts_audio_stream(
+        self, message: str, language: str, options: dict[str, Any] | None = None
+    ) -> AsyncIterable[bytes]:
+        """Synthesize text into speech audio bytes stream."""
+        cfg_options = self.entry.options
+        model = cfg_options.get(CONF_TTS_MODEL, DEFAULT_TTS_MODEL)
+        voice = (options or {}).get("voice") or cfg_options.get(
+            CONF_TTS_VOICE, DEFAULT_TTS_VOICE
+        )
+        speed = float(
+            (options or {}).get("speed")
+            or cfg_options.get(CONF_TTS_SPEED, DEFAULT_TTS_SPEED)
+        )
+        response_format = cfg_options.get(CONF_TTS_FORMAT, DEFAULT_TTS_FORMAT)
+        if response_format not in SUPPORTED_TTS_FORMATS:
+            response_format = "mp3"
+
+        try:
+            stream = await self.client.async_text_to_speech_stream(
+                text=message,
+                model=model,
+                voice=voice,
+                response_format=response_format,
+                speed=speed,
+            )
+            async for chunk in stream:
+                yield chunk
+        except Exception as err:
+            LOGGER.error("OmniRoute TTS synthesis stream failed: %s", err)
+            return

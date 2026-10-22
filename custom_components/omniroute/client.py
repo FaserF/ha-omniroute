@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import asyncio
 import time
+from collections.abc import AsyncIterable
 from typing import Any
 
 import aiohttp
@@ -520,3 +521,100 @@ class OmniRouteClient:
             "latency_ms": latency_ms,
             "usage": resp.get("usage", {}),
         }
+
+
+    async def async_chat_completion_stream(
+        self,
+        messages: list[dict[str, Any]],
+        model: str,
+        temperature: float = 0.7,
+        top_p: float = 1.0,
+        max_tokens: int | None = None,
+        tools: list[dict[str, Any]] | None = None,
+        tool_choice: str | dict[str, Any] | None = None,
+    ) -> AsyncIterable[dict[str, Any]]:
+        """Send chat completion request with streaming."""
+        import json
+        url = f"{self._v1_url}/chat/completions"
+        headers = self._get_headers()
+        headers["Content-Type"] = "application/json"
+
+        payload: dict[str, Any] = {
+            "model": model,
+            "messages": messages,
+            "temperature": temperature,
+            "top_p": top_p,
+            "stream": True,
+        }
+        if max_tokens is not None:
+            payload["max_tokens"] = max_tokens
+        if tools:
+            payload["tools"] = tools
+        if tool_choice:
+            payload["tool_choice"] = tool_choice
+
+        try:
+            async with self._session.post(url, headers=headers, json=payload, timeout=aiohttp.ClientTimeout(total=self._timeout)) as resp:
+                if resp.status == 401:
+                    raise InvalidAuth("Invalid authentication token")
+                if resp.status == 404:
+                    raise ModelNotFoundError(f"Model '{model}' not found")
+                if resp.status != 200:
+                    raise OmniRouteError(f"HTTP {resp.status} during chat completion stream: {await resp.text()}")
+
+                async for line in resp.content:
+                    if not line:
+                        continue
+                    line = line.decode("utf-8").strip()
+                    if line.startswith("data: "):
+                        data_str = line[6:]
+                        if data_str == "[DONE]":
+                            break
+                        try:
+                            yield json.loads(data_str)
+                        except json.JSONDecodeError:
+                            LOGGER.debug("Could not decode stream line: %s", line)
+        except (TimeoutError, aiohttp.ClientError) as err:
+            raise CannotConnect(f"Connection error during chat completion stream: {err}") from err
+        except (InvalidAuth, ModelNotFoundError, OmniRouteError):
+            raise
+        except Exception as err:
+            raise OmniRouteError(f"Unexpected error during chat completion stream: {err}") from err
+
+
+    async def async_text_to_speech_stream(
+        self,
+        text: str,
+        model: str = "tts-latest",
+        voice: str = "Puck",
+        response_format: str = "mp3",
+        speed: float = 1.0,
+    ) -> AsyncIterable[bytes]:
+        """Synthesize text into speech audio bytes as a stream."""
+        url = f"{self._v1_url}/audio/speech"
+        headers = self._get_headers()
+        headers["Content-Type"] = "application/json"
+
+        payload = {
+            "model": model,
+            "input": text,
+            "voice": voice,
+            "response_format": response_format,
+            "speed": speed,
+        }
+
+        try:
+            async with self._session.post(url, headers=headers, json=payload, timeout=aiohttp.ClientTimeout(total=self._timeout)) as resp:
+                if resp.status == 401:
+                    raise InvalidAuth("Invalid authentication token")
+                if resp.status != 200:
+                    raise OmniRouteError(f"HTTP {resp.status} during TTS synthesis stream: {await resp.text()}")
+
+                async for chunk in resp.content.iter_chunked(1024):
+                    yield chunk
+        except (TimeoutError, aiohttp.ClientError) as err:
+            raise CannotConnect(f"Connection error during TTS stream: {err}") from err
+        except (InvalidAuth, OmniRouteError):
+            raise
+        except Exception as err:
+            raise OmniRouteError(f"Unexpected error during TTS stream: {err}") from err
