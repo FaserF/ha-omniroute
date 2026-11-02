@@ -1,10 +1,10 @@
-<p align="center">
+﻿<p align="center">
   <img src="https://raw.githubusercontent.com/FaserF/ha-omniroute/main/brand/logo.png" alt="OmniRoute Logo" width="360">
 </p>
 
 # OmniRoute for Home Assistant
 
-[![hacs_badge](https://img.shields.io/badge/HACS-Custom-41BDF5.svg)](https://github.com/hacs/default)
+[![Home Assistant Marketplace](https://img.shields.io/badge/Home_Assistant-Marketplace-41BDF5.svg?style=flat-square&logo=homeassistant&logoColor=white)](https://www.home-assistant.io)
 [![CI](https://github.com/FaserF/ha-omniroute/actions/workflows/ci-orchestrator.yml/badge.svg)](https://github.com/FaserF/ha-omniroute/actions)
 [![Documentation](https://img.shields.io/badge/docs-GitHub_Pages-blue.svg)](https://faserf.github.io/ha-omniroute/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -214,8 +214,8 @@ If you were using the legacy `ai_automation_suggester` custom component:
 
 | Device / Service | Integration Use Case | Link |
 | :--- | :--- | :--- |
-| **OpenWrt-kompatible Wi-Fi 6/7 Router & Gateways** | Native Ubus/RPC, WireGuard, SQM & Präsenz-Erkennung in Home Assistant | [Offizielle Geräte-Seite →](https://fabiseitz.de/go/ha-router) |
-| **Home Assistant Green / Yellow Zentrale** | Dedizierter, stromsparender 24/7 Smart-Home-Host | [Offizielle Geräte-Seite →](https://fabiseitz.de/go/ha-hardware) |
+| **OpenWrt-compatible Wi-Fi 6/7 Routers & Gateways** | Native Ubus/RPC, WireGuard, SQM & presence detection in Home Assistant | [Official Device Page →](https://fabiseitz.de/go/ha-router) |
+| **Home Assistant Green / Yellow Hub** | Dedicated, power-efficient 24/7 smart home appliance | [Official Device Page →](https://fabiseitz.de/go/ha-hardware) |
 
 ---
 
