@@ -70,12 +70,12 @@ class OmniRouteSTTEntity(
         if coordinator.data:
             sw_version = coordinator.data.get("version")
         self._attr_device_info = get_device_info(entry, sw_version)
-        self._attr_state = datetime.now(UTC).isoformat()
+        self._state_value = datetime.now(UTC).isoformat()
 
     @property
     def state(self) -> str:
         """Return the state of the entity."""
-        return self._attr_state
+        return self._state_value
 
     @property
     def supported_languages(self) -> list[str]:

@@ -63,12 +63,12 @@ class OmniRouteButton(CoordinatorEntity[OmniRouteDataUpdateCoordinator], ButtonE
         if coordinator.data:
             sw_version = coordinator.data.get("version")
         self._attr_device_info = get_device_info(entry, sw_version)
-        self._attr_state = datetime.now(UTC).isoformat()
+        self._state_value = datetime.now(UTC).isoformat()
 
     @property
     def state(self) -> str:
         """Return the state of the entity."""
-        return self._attr_state
+        return self._state_value
 
 
 class OmniRouteRefreshButton(OmniRouteButton):
@@ -96,7 +96,7 @@ class OmniRouteRefreshButton(OmniRouteButton):
     async def async_press(self) -> None:
         """Force refresh data in coordinator."""
         _LOGGER.info("Reloading OmniRoute models cache for %s", self.entry.entry_id)
-        self._attr_state = datetime.now(UTC).isoformat()
+        self._state_value = datetime.now(UTC).isoformat()
         self.async_write_ha_state()
         await self.coordinator.async_refresh()
 
@@ -127,6 +127,6 @@ class OmniRouteFlushCacheButton(OmniRouteButton):
         """Clear OmniRoute gateway caches."""
         _LOGGER.info("Flushing OmniRoute caches for %s", self.entry.entry_id)
         await self.client.async_flush_cache()
-        self._attr_state = datetime.now(UTC).isoformat()
+        self._state_value = datetime.now(UTC).isoformat()
         self.async_write_ha_state()
         await self.coordinator.async_refresh()
