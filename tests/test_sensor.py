@@ -93,7 +93,9 @@ def test_sensor_values_and_device_info(mock_config_entry):
     assert sensors_by_key["status"].native_value == "ok"
     assert sensors_by_key["latency_ms"].native_value == 18.4
     assert sensors_by_key["active_cascades"].native_value == 1
-    assert "active_cascades" in sensors_by_key["active_cascades"].extra_state_attributes
+    assert "active_cascades" in (
+        sensors_by_key["active_cascades"].extra_state_attributes or {}
+    )
     assert sensors_by_key["models_count"].native_value == 5
     assert sensors_by_key["quota_health"].native_value == "optimal"
     assert sensors_by_key["daily_tokens"].native_value == 12450

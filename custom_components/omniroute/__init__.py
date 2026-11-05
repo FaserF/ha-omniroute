@@ -15,6 +15,7 @@ from .const import (
     DATA_CLIENT,
     DATA_COORDINATOR,
     DOMAIN,
+    LOGGER,
     PLATFORMS,
 )
 from .coordinator import OmniRouteDataUpdateCoordinator
@@ -37,8 +38,8 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
         integration = await async_get_integration(hass, DOMAIN)
         if integration.version:
             set_integration_version(str(integration.version))
-    except Exception:
-        pass
+    except Exception as err:
+        LOGGER.debug("Could not resolve integration version for %s: %s", DOMAIN, err)
 
     session = aiohttp_client.async_get_clientsession(hass)
     api_url = entry.data[CONF_API_URL]

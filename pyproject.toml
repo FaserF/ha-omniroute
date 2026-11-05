@@ -6,7 +6,7 @@ authors = [
     {name = "FaserF", email = "github@fabiseitz.de"}
 ]
 readme = "README.md"
-requires-python = ">=3.12"
+requires-python = ">=3.14"
 
 [project.optional-dependencies]
 test = [
@@ -20,7 +20,7 @@ test = [
 ]
 
 [tool.ruff]
-target-version = "py312"
+target-version = "py314"
 line-length = 88
 
 [tool.ruff.lint]
@@ -29,7 +29,7 @@ ignore = ["E501", "B008", "SIM102", "SIM105", "SIM117", "E402", "B017", "B904", 
 
 [tool.mypy]
 explicit_package_bases = true
-python_version = "3.12"
+python_version = "3.14"
 show_error_codes = true
 follow_imports = "silent"
 ignore_missing_imports = true

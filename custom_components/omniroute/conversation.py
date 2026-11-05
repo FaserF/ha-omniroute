@@ -189,7 +189,12 @@ class OmniRouteConversationEntity(
                 fn_args_raw = str(func_dict.get("arguments", "{}"))
                 try:
                     fn_args = json.loads(fn_args_raw)
-                except Exception:
+                except (json.JSONDecodeError, TypeError) as parse_err:
+                    LOGGER.debug(
+                        "Could not parse function arguments %r: %s",
+                        fn_args_raw,
+                        parse_err,
+                    )
                     fn_args = {}
 
                 try:
@@ -367,7 +372,12 @@ class OmniRouteConversationEntity(
                 fn_args_raw = str(func_dict.get("arguments", "{}"))
                 try:
                     fn_args = json.loads(fn_args_raw)
-                except Exception:
+                except (json.JSONDecodeError, TypeError) as parse_err:
+                    LOGGER.debug(
+                        "Could not parse function arguments %r: %s",
+                        fn_args_raw,
+                        parse_err,
+                    )
                     fn_args = {}
 
                 try:

@@ -78,7 +78,7 @@ class OmniRouteAITaskEntity(CoordinatorEntity[OmniRouteDataUpdateCoordinator], E
                 | AITaskEntityFeature.GENERATE_IMAGE
                 | AITaskEntityFeature.SUPPORT_ATTACHMENTS
             )
-        except (ImportError, AttributeError):
+        except ImportError, AttributeError:
             self._attr_supported_features = 7
 
     @property
@@ -265,7 +265,8 @@ class OmniRouteAITaskEntity(CoordinatorEntity[OmniRouteDataUpdateCoordinator], E
 
             try:
                 data_result = json.loads(content)
-            except Exception:
+            except (json.JSONDecodeError, TypeError) as parse_err:
+                LOGGER.debug("Could not parse structured task JSON: %s", parse_err)
                 data_result = content
 
         cid = (

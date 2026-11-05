@@ -178,7 +178,8 @@ class OmniRouteClient:
                                 val = data.get("version") or data.get("current")
                                 if val:
                                     return str(val)
-            except Exception:
+            except Exception as exc:
+                LOGGER.debug("Error checking version at %s: %s", endpoint, exc)
                 continue
         return None
 
@@ -284,7 +285,7 @@ class OmniRouteClient:
             raise CannotConnect(
                 f"Connection error during chat completion: {err}"
             ) from err
-        except (InvalidAuth, ModelNotFoundError, OmniRouteError):
+        except InvalidAuth, ModelNotFoundError, OmniRouteError:
             raise
         except Exception as err:
             raise OmniRouteError(
@@ -321,7 +322,7 @@ class OmniRouteClient:
                     return [item["embedding"] for item in data.get("data", [])]
         except (TimeoutError, aiohttp.ClientError) as err:
             raise CannotConnect(f"Connection error during embeddings: {err}") from err
-        except (InvalidAuth, OmniRouteError):
+        except InvalidAuth, OmniRouteError:
             raise
         except Exception as err:
             raise OmniRouteError(f"Unexpected error during embeddings: {err}") from err
@@ -361,7 +362,7 @@ class OmniRouteClient:
                     return await resp.read()
         except (TimeoutError, aiohttp.ClientError) as err:
             raise CannotConnect(f"Connection error during TTS: {err}") from err
-        except (InvalidAuth, OmniRouteError):
+        except InvalidAuth, OmniRouteError:
             raise
         except Exception as err:
             raise OmniRouteError(f"Unexpected error during TTS: {err}") from err
@@ -405,7 +406,7 @@ class OmniRouteClient:
                     return await resp.text()
         except (TimeoutError, aiohttp.ClientError) as err:
             raise CannotConnect(f"Connection error during STT: {err}") from err
-        except (InvalidAuth, OmniRouteError):
+        except InvalidAuth, OmniRouteError:
             raise
         except Exception as err:
             raise OmniRouteError(f"Unexpected error during STT: {err}") from err
@@ -451,7 +452,7 @@ class OmniRouteClient:
             raise CannotConnect(
                 f"Connection error during image generation: {err}"
             ) from err
-        except (InvalidAuth, OmniRouteError):
+        except InvalidAuth, OmniRouteError:
             raise
         except Exception as err:
             raise OmniRouteError(
@@ -507,7 +508,7 @@ class OmniRouteClient:
                     return []
         except (TimeoutError, aiohttp.ClientError) as err:
             raise CannotConnect(f"Connection error during embedding: {err}") from err
-        except (InvalidAuth, OmniRouteError):
+        except InvalidAuth, OmniRouteError:
             raise
         except Exception as err:
             raise OmniRouteError(f"Unexpected error during embedding: {err}") from err
@@ -613,7 +614,7 @@ class OmniRouteClient:
             raise CannotConnect(
                 f"Connection error during chat completion stream: {err}"
             ) from err
-        except (InvalidAuth, ModelNotFoundError, OmniRouteError):
+        except InvalidAuth, ModelNotFoundError, OmniRouteError:
             raise
         except Exception as err:
             raise OmniRouteError(
@@ -659,7 +660,7 @@ class OmniRouteClient:
                     yield chunk
         except (TimeoutError, aiohttp.ClientError) as err:
             raise CannotConnect(f"Connection error during TTS stream: {err}") from err
-        except (InvalidAuth, OmniRouteError):
+        except InvalidAuth, OmniRouteError:
             raise
         except Exception as err:
             raise OmniRouteError(f"Unexpected error during TTS stream: {err}") from err

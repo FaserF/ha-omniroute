@@ -8,7 +8,7 @@ from unittest.mock import AsyncMock, MagicMock
 
 if sys.platform == "win32":
     if "fcntl" not in sys.modules:
-        fcntl_mock = types.ModuleType("fcntl")
+        fcntl_mock: Any = types.ModuleType("fcntl")
         fcntl_mock.LOCK_EX = 2
         fcntl_mock.LOCK_NB = 4
         fcntl_mock.LOCK_SH = 1
@@ -17,7 +17,7 @@ if sys.platform == "win32":
         sys.modules["fcntl"] = fcntl_mock
 
     if "resource" not in sys.modules:
-        resource_mock = types.ModuleType("resource")
+        resource_mock: Any = types.ModuleType("resource")
         resource_mock.RLIMIT_NOFILE = 7
         resource_mock.getrlimit = MagicMock(return_value=(1024, 2048))
         resource_mock.setrlimit = MagicMock()
@@ -42,10 +42,13 @@ def mock_submodule(name: str) -> None:
         full_name = ".".join(parts[:i])
         if full_name not in sys.modules:
             mock = MagicMock()
+            mock.__path__ = []
             sys.modules[full_name] = mock
             if i > 1:
                 parent_name = ".".join(parts[: i - 1])
                 setattr(sys.modules[parent_name], parts[i - 1], mock)
+        elif not hasattr(sys.modules[full_name], "__path__"):
+            sys.modules[full_name].__path__ = []
 
 
 @dataclass(frozen=True, kw_only=True)
@@ -159,6 +162,8 @@ class MockDataUpdateCoordinator:
 class MockConfigFlow:
     """Mock ConfigFlow."""
 
+    _domain: str | None = None
+
     def __init_subclass__(cls, domain: str | None = None, **kwargs: Any) -> None:
         super().__init_subclass__(**kwargs)
         cls._domain = domain
@@ -259,11 +264,13 @@ mock_submodule("homeassistant.components.image")
 mock_submodule("homeassistant.components.camera")
 mock_submodule("homeassistant.components.diagnostics")
 mock_submodule("homeassistant.components.conversation")
+mock_submodule("homeassistant.components.stt")
+mock_submodule("homeassistant.components.tts")
 mock_submodule("homeassistant.helpers.device_registry")
 mock_submodule("homeassistant.helpers.entity_registry")
 
 # Assign standard attributes
-ha_const = sys.modules["homeassistant.const"]
+ha_const: Any = sys.modules["homeassistant.const"]
 ha_const.Platform = types.SimpleNamespace(
     CONVERSATION="conversation",
     SENSOR="sensor",
@@ -281,7 +288,7 @@ ha_const.EntityCategory = types.SimpleNamespace(
     CONFIG="config",
 )
 
-ha_core = sys.modules["homeassistant.core"]
+ha_core: Any = sys.modules["homeassistant.core"]
 ha_core.HomeAssistant = MagicMock
 ha_core.ServiceCall = MagicMock
 ha_core.SupportsResponse = types.SimpleNamespace(
@@ -291,7 +298,7 @@ ha_core.SupportsResponse = types.SimpleNamespace(
 )
 ha_core.callback = lambda fn: fn
 
-ha_exc = sys.modules["homeassistant.exceptions"]
+ha_exc: Any = sys.modules["homeassistant.exceptions"]
 
 
 class MockHomeAssistantError(Exception):
@@ -305,15 +312,15 @@ class MockUpdateFailed(MockHomeAssistantError):
     pass
 
 
-coord_module = sys.modules["homeassistant.helpers.update_coordinator"]
+coord_module: Any = sys.modules["homeassistant.helpers.update_coordinator"]
 coord_module.DataUpdateCoordinator = MockDataUpdateCoordinator
 coord_module.CoordinatorEntity = MockCoordinatorEntity
 coord_module.UpdateFailed = MockUpdateFailed
 
-entity_module = sys.modules["homeassistant.helpers.entity"]
+entity_module: Any = sys.modules["homeassistant.helpers.entity"]
 entity_module.Entity = MockEntity
 
-sensor_module = sys.modules["homeassistant.components.sensor"]
+sensor_module: Any = sys.modules["homeassistant.components.sensor"]
 
 
 class MockSensorEntity(MockEntity):
@@ -340,7 +347,7 @@ sensor_module.SensorDeviceClass = types.SimpleNamespace(
 )
 
 # Binary Sensor module
-bs_module = sys.modules["homeassistant.components.binary_sensor"]
+bs_module: Any = sys.modules["homeassistant.components.binary_sensor"]
 
 
 class MockBinarySensorEntity(MockEntity):
@@ -360,7 +367,7 @@ bs_module.BinarySensorDeviceClass = types.SimpleNamespace(
 )
 
 # Button module
-btn_module = sys.modules["homeassistant.components.button"]
+btn_module: Any = sys.modules["homeassistant.components.button"]
 
 
 class MockButtonEntity(MockEntity):
@@ -376,7 +383,7 @@ btn_module.ButtonDeviceClass = types.SimpleNamespace(
 )
 
 # Select module
-select_module = sys.modules["homeassistant.components.select"]
+select_module: Any = sys.modules["homeassistant.components.select"]
 
 
 class MockSelectEntity(MockEntity):
@@ -399,7 +406,7 @@ select_module.SelectEntity = MockSelectEntity
 select_module.SelectEntityDescription = MockEntityDescription
 
 # Switch module
-switch_module = sys.modules["homeassistant.components.switch"]
+switch_module: Any = sys.modules["homeassistant.components.switch"]
 
 
 class MockSwitchEntity(MockEntity):
@@ -420,7 +427,7 @@ switch_module.SwitchEntity = MockSwitchEntity
 switch_module.SwitchEntityDescription = MockEntityDescription
 
 # Image module
-image_module = sys.modules["homeassistant.components.image"]
+image_module: Any = sys.modules["homeassistant.components.image"]
 
 
 class MockImageEntity(MockEntity):
@@ -432,7 +439,7 @@ image_module.ImageEntity = MockImageEntity
 
 
 # Diagnostics module
-diag_module = sys.modules["homeassistant.components.diagnostics"]
+diag_module: Any = sys.modules["homeassistant.components.diagnostics"]
 
 
 def mock_async_redact_data(data: dict[str, Any], to_redact: Any) -> dict[str, Any]:
@@ -446,7 +453,7 @@ def mock_async_redact_data(data: dict[str, Any], to_redact: Any) -> dict[str, An
 diag_module.async_redact_data = mock_async_redact_data
 
 # Device Registry and Entity Registry
-dr_module = sys.modules["homeassistant.helpers.device_registry"]
+dr_module: Any = sys.modules["homeassistant.helpers.device_registry"]
 
 
 class MockDeviceInfo(dict):
@@ -470,7 +477,7 @@ mock_dev_entry.configuration_url = "http://omniroute:20128/v1"
 dr_module.async_get = MagicMock(return_value=mock_dev_reg)
 dr_module.async_entries_for_config_entry = MagicMock(return_value=[mock_dev_entry])
 
-er_module = sys.modules["homeassistant.helpers.entity_registry"]
+er_module: Any = sys.modules["homeassistant.helpers.entity_registry"]
 mock_ent_reg = MagicMock()
 mock_ent_entry = MagicMock()
 mock_ent_entry.entity_id = "sensor.omniroute_gateway_response_time"
@@ -484,7 +491,7 @@ er_module.async_get = MagicMock(return_value=mock_ent_reg)
 er_module.async_entries_for_config_entry = MagicMock(return_value=[mock_ent_entry])
 
 # Conversation module
-conv_module = sys.modules["homeassistant.components.conversation"]
+conv_module: Any = sys.modules["homeassistant.components.conversation"]
 
 
 class MockConversationEntity(MockEntity):
@@ -528,12 +535,57 @@ class MockIntentResponse:
 
 conv_module.intent = types.SimpleNamespace(IntentResponse=MockIntentResponse)
 
-cfg_module = sys.modules["homeassistant.config_entries"]
+
+# STT module
+stt_module: Any = sys.modules["homeassistant.components.stt"]
+
+
+class MockSpeechToTextEntity(MockEntity):
+    """Mock STT entity."""
+
+
+stt_module.SpeechToTextEntity = MockSpeechToTextEntity
+stt_module.SpeechMetadata = MagicMock
+
+
+@dataclass
+class MockSpeechResult:
+    text: str | None
+    result: Any
+
+
+stt_module.SpeechResult = MockSpeechResult
+stt_module.SpeechResultState = types.SimpleNamespace(SUCCESS="success", ERROR="error")
+stt_module.AudioBitRates = types.SimpleNamespace(BITRATE_16=16, BITRATE_32=32)
+stt_module.AudioChannels = types.SimpleNamespace(CHANNEL_MONO=1, CHANNEL_STEREO=2)
+stt_module.AudioCodecs = types.SimpleNamespace(
+    PCM="pcm", OPUS="opus", CODEC_PCM="pcm", CODEC_OPUS="opus"
+)
+stt_module.AudioFormats = types.SimpleNamespace(WAV="wav", OGG="ogg")
+stt_module.AudioSampleRates = types.SimpleNamespace(
+    SAMPLERATE_8000=8000,
+    SAMPLERATE_16000=16000,
+    SAMPLERATE_44100=44100,
+    SAMPLERATE_48000=48000,
+)
+
+# TTS module
+tts_module: Any = sys.modules["homeassistant.components.tts"]
+
+
+class MockTextToSpeechEntity(MockEntity):
+    """Mock TTS entity."""
+
+
+tts_module.TextToSpeechEntity = MockTextToSpeechEntity
+tts_module.TtsAudioType = Any
+
+cfg_module: Any = sys.modules["homeassistant.config_entries"]
 cfg_module.ConfigFlow = MockConfigFlow
 cfg_module.OptionsFlow = MockOptionsFlow
 cfg_module.ConfigEntry = MagicMock
 
-tpl_module = sys.modules["homeassistant.helpers.template"]
+tpl_module: Any = sys.modules["homeassistant.helpers.template"]
 
 
 class MockTemplate:
@@ -603,3 +655,9 @@ def mock_config_entry() -> MagicMock:
     entry.async_on_unload = MagicMock()
     entry.add_update_listener = MagicMock()
     return entry
+
+
+@pytest.fixture
+def expected_lingering_timers() -> bool:
+    """Fixture to indicate if timers are expected to linger."""
+    return True
