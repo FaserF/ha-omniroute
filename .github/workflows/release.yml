@@ -1,4 +1,4 @@
-﻿---
+---
 name: Release
 
 on:
@@ -208,7 +208,7 @@ jobs:
         run: |
           DOMAIN=$(python -c "import json, glob; print(json.load(open(glob.glob('custom_components/*/manifest.json')[0]))['domain'])")
           cd "custom_components/$DOMAIN"
-          zip -r "../../$DOMAIN.zip" .
+          zip -r "../../$DOMAIN.zip" . -x "*/__pycache__/*" -x "*.pyc" -x "*.DS_Store*"
           cd ../..
           mv "$DOMAIN.zip" "$DOMAIN.zip" || true
           # Keep domain-named zip for backward compatibility
