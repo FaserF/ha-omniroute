@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import AsyncIterable
+from datetime import UTC, datetime
 
 from homeassistant.components.stt import (
     AudioBitRates,
@@ -69,6 +70,12 @@ class OmniRouteSTTEntity(
         if coordinator.data:
             sw_version = coordinator.data.get("version")
         self._attr_device_info = get_device_info(entry, sw_version)
+        self._attr_state = datetime.now(UTC).isoformat()
+
+    @property
+    def state(self) -> str:
+        """Return the state of the entity."""
+        return self._attr_state
 
     @property
     def supported_languages(self) -> list[str]:

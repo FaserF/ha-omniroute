@@ -37,7 +37,7 @@ BINARY_SENSORS: tuple[OmniRouteBinarySensorDescription, ...] = (
         translation_key="connected",
         device_class=BinarySensorDeviceClass.CONNECTIVITY,
         entity_category=EntityCategory.DIAGNOSTIC,
-        entity_registry_enabled_default=False,
+        entity_registry_enabled_default=True,
         is_on_fn=lambda data: bool(data.get("reachable", False)),
     ),
     OmniRouteBinarySensorDescription(
@@ -46,7 +46,7 @@ BINARY_SENSORS: tuple[OmniRouteBinarySensorDescription, ...] = (
         translation_key="healthy",
         icon="mdi:heart-pulse",
         entity_category=EntityCategory.DIAGNOSTIC,
-        entity_registry_enabled_default=False,
+        entity_registry_enabled_default=True,
         is_on_fn=lambda data: bool(data.get("healthy", False)),
         attrs_fn=lambda data: {
             "status": data.get("status", "unknown"),
@@ -59,7 +59,7 @@ BINARY_SENSORS: tuple[OmniRouteBinarySensorDescription, ...] = (
         translation_key="provider_gemini",
         icon="mdi:google",
         entity_category=EntityCategory.DIAGNOSTIC,
-        entity_registry_enabled_default=False,
+        entity_registry_enabled_default=True,
         is_on_fn=lambda data: (
             data.get("providers", {}).get("google", {}).get("status") != "error"
         ),
@@ -70,7 +70,7 @@ BINARY_SENSORS: tuple[OmniRouteBinarySensorDescription, ...] = (
         translation_key="provider_anthropic",
         icon="mdi:brain",
         entity_category=EntityCategory.DIAGNOSTIC,
-        entity_registry_enabled_default=False,
+        entity_registry_enabled_default=True,
         is_on_fn=lambda data: (
             data.get("providers", {}).get("anthropic", {}).get("status") != "error"
         ),
@@ -81,7 +81,7 @@ BINARY_SENSORS: tuple[OmniRouteBinarySensorDescription, ...] = (
         translation_key="provider_openai",
         icon="mdi:creation",
         entity_category=EntityCategory.DIAGNOSTIC,
-        entity_registry_enabled_default=False,
+        entity_registry_enabled_default=True,
         is_on_fn=lambda data: (
             data.get("providers", {}).get("openai", {}).get("status") != "error"
         ),
@@ -92,7 +92,7 @@ BINARY_SENSORS: tuple[OmniRouteBinarySensorDescription, ...] = (
         translation_key="provider_deepseek",
         icon="mdi:search-web",
         entity_category=EntityCategory.DIAGNOSTIC,
-        entity_registry_enabled_default=False,
+        entity_registry_enabled_default=True,
         is_on_fn=lambda data: (
             data.get("providers", {}).get("deepseek", {}).get("status") != "error"
         ),
@@ -103,7 +103,7 @@ BINARY_SENSORS: tuple[OmniRouteBinarySensorDescription, ...] = (
         translation_key="provider_groq",
         icon="mdi:lightning-bolt",
         entity_category=EntityCategory.DIAGNOSTIC,
-        entity_registry_enabled_default=False,
+        entity_registry_enabled_default=True,
         is_on_fn=lambda data: (
             data.get("providers", {}).get("groq", {}).get("status") != "error"
         ),
