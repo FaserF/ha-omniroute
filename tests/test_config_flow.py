@@ -8,10 +8,7 @@ from custom_components.omniroute.client import (
     CannotConnect,
     InvalidAuth,
 )
-from custom_components.omniroute.config_flow import (
-    OmniRouteConfigFlow,
-    OmniRouteOptionsFlow,
-)
+from custom_components.omniroute.config_flow import OmniRouteConfigFlow
 from custom_components.omniroute.const import (
     CONF_API_KEY,
     CONF_API_URL,
@@ -125,7 +122,9 @@ async def test_flow_reauth(hass):
 @pytest.mark.asyncio
 async def test_options_flow(hass, mock_config_entry):
     """Test options flow form and save."""
-    options_flow = OmniRouteOptionsFlow(mock_config_entry)
+    options_flow = OmniRouteConfigFlow.async_get_options_flow(mock_config_entry)
+    # Home Assistant's flow manager attaches the entry after creating the flow.
+    options_flow._config_entry = mock_config_entry
     options_flow.hass = hass
 
     # Form rendering

@@ -101,15 +101,11 @@ class OmniRouteConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         config_entry: config_entries.ConfigEntry,
     ) -> config_entries.OptionsFlow:
         """Create the options flow."""
-        return OmniRouteOptionsFlow(config_entry)
+        return OmniRouteOptionsFlow()
 
 
 class OmniRouteOptionsFlow(config_entries.OptionsFlow):
     """Handle options flow for OmniRoute."""
-
-    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
-        """Initialize options flow."""
-        # config_entry is a read-only property on HA OptionsFlow
 
     async def async_step_init(
         self, user_input: dict[str, Any] | None = None

@@ -217,9 +217,14 @@ class MockConfigFlow:
 class MockOptionsFlow:
     """Mock OptionsFlow."""
 
-    def __init__(self, config_entry: Any = None) -> None:
-        self.config_entry = config_entry
+    def __init__(self) -> None:
+        self._config_entry: Any = None
         self.hass: Any = None
+
+    @property
+    def config_entry(self) -> Any:
+        """Return the config entry assigned by the flow manager."""
+        return self._config_entry
 
     def async_show_form(
         self,
@@ -524,6 +529,34 @@ class MockConversationResult:
 
 
 conv_module.ConversationResult = MockConversationResult
+
+
+@dataclass
+class MockLLMContext:
+    """Mirror the Home Assistant 2026.11 LLMContext signature."""
+
+    platform: str
+    context: Any
+    language: str | None = None
+    assistant: str | None = None
+    device_id: str | None = None
+    agent_id: str | None = None
+
+
+llm_module: Any = sys.modules["homeassistant.helpers.llm"]
+llm_module.LLMContext = MockLLMContext
+llm_module.LLM_API_ASSIST = "assist"
+
+
+@dataclass
+class MockToolResult:
+    """Mirror Home Assistant's non-JSON-serializable ToolResult object."""
+
+    data: dict[str, Any]
+    error: bool = False
+
+
+llm_module.ToolResult = MockToolResult
 
 
 class MockIntentResponse:

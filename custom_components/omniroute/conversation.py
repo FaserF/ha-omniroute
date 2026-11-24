@@ -43,6 +43,38 @@ from .coordinator import OmniRouteDataUpdateCoordinator
 from .helpers import get_device_info
 
 
+def _format_llm_tools(llm_api: Any) -> list[dict[str, Any]]:
+    """Convert Home Assistant tool schemas into JSON-compatible OpenAPI schemas."""
+    import probatio
+
+    return [
+        {
+            "type": "function",
+            "function": {
+                "name": tool.name,
+                "description": tool.description,
+                "parameters": probatio.to_openapi(
+                    tool.parameters,
+                    custom_serializer=llm_api.custom_serializer,
+                    openapi_version="3.1.0",
+                ),
+            },
+        }
+        for tool in llm_api.tools
+    ]
+
+
+def _serialize_tool_result(tool_result: Any) -> str:
+    """Serialize a Home Assistant tool result for the chat completion API."""
+    result_data = getattr(tool_result, "data", tool_result)
+    if getattr(tool_result, "error", False):
+        if isinstance(result_data, dict):
+            result_data = {**result_data, "error": True}
+        else:
+            result_data = {"result": result_data, "error": True}
+    return json.dumps(result_data)
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
@@ -114,28 +146,24 @@ class OmniRouteConversationEntity(
             llm_context = llm.LLMContext(
                 platform=DOMAIN,
                 context=user_input.context,
-                user_prompt=user_input.text,
                 language=user_input.language,
                 assistant="conversation",
                 device_id=user_input.device_id,
+                agent_id=user_input.agent_id,
             )
             llm_api = await llm.async_get_api(
                 self.hass, llm.LLM_API_ASSIST, llm_context
             )
             if llm_api and getattr(llm_api, "tools", None):
-                tools = [
-                    {
-                        "type": "function",
-                        "function": {
-                            "name": tool.name,
-                            "description": tool.description,
-                            "parameters": tool.parameters,
-                        },
-                    }
-                    for tool in llm_api.tools
-                ]
+                tools = _format_llm_tools(llm_api)
+            if llm_api and llm_api.api_prompt:
+                prompt_str = f"{prompt_str}\n\n{llm_api.api_prompt}"
         except Exception as exc:  # noqa: BLE001
-            LOGGER.debug("LLM tools could not be loaded: %s", exc)
+            LOGGER.warning(
+                "Home Assistant tools could not be loaded; conversation will run "
+                "without device control: %s",
+                exc,
+            )
 
         conversation_id = user_input.conversation_id or uuid.uuid4().hex
         prior_messages = self.history.get(conversation_id, [])
@@ -207,7 +235,7 @@ class OmniRouteConversationEntity(
                         tool_args=fn_args,
                     )
                     tool_res = await llm_api.async_call_tool(tool_input)
-                    tool_content = json.dumps(tool_res)
+                    tool_content = _serialize_tool_result(tool_res)
                 except Exception as err:  # noqa: BLE001
                     LOGGER.warning("Tool execution error for %s: %s", fn_name, err)
                     tool_content = json.dumps({"error": str(err)})
@@ -260,28 +288,24 @@ class OmniRouteConversationEntity(
             llm_context = llm.LLMContext(
                 platform=DOMAIN,
                 context=user_input.context,
-                user_prompt=user_input.text,
                 language=user_input.language,
                 assistant="conversation",
                 device_id=user_input.device_id,
+                agent_id=user_input.agent_id,
             )
             llm_api = await llm.async_get_api(
                 self.hass, llm.LLM_API_ASSIST, llm_context
             )
             if llm_api and getattr(llm_api, "tools", None):
-                tools = [
-                    {
-                        "type": "function",
-                        "function": {
-                            "name": tool.name,
-                            "description": tool.description,
-                            "parameters": tool.parameters,
-                        },
-                    }
-                    for tool in llm_api.tools
-                ]
+                tools = _format_llm_tools(llm_api)
+            if llm_api and llm_api.api_prompt:
+                prompt_str = f"{prompt_str}\n\n{llm_api.api_prompt}"
         except Exception as exc:  # noqa: BLE001
-            LOGGER.debug("LLM tools could not be loaded: %s", exc)
+            LOGGER.warning(
+                "Home Assistant tools could not be loaded; conversation will run "
+                "without device control: %s",
+                exc,
+            )
 
         conversation_id = user_input.conversation_id or uuid.uuid4().hex
         prior_messages = self.history.get(conversation_id, [])
@@ -390,7 +414,7 @@ class OmniRouteConversationEntity(
                         tool_args=fn_args,
                     )
                     tool_res = await llm_api.async_call_tool(tool_input)
-                    tool_content = json.dumps(tool_res)
+                    tool_content = _serialize_tool_result(tool_res)
                 except Exception as err:  # noqa: BLE001
                     LOGGER.warning("Tool execution error for %s: %s", fn_name, err)
                     tool_content = json.dumps({"error": str(err)})
